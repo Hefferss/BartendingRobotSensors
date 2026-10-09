@@ -9,7 +9,7 @@ from spatialmath.base import trotz
 scene_folder = os.path.dirname(os.path.abspath(__file__))
 ir_folder = os.path.join(scene_folder, "IRBaseCode") #UR3.py and the rail live in the IR code folder
 sys.path.append(ir_folder)
-from UR3 import add_UR3, UR3_move_base, UR3_move_and_grab, set_UR3_pose
+from UR3 import add_UR3, UR3_move_base, UR3_move_and_grab, set_UR3_pose, update_camera_mesh
 
 env = swift.Swift()
 env.launch(realtime=True)
@@ -45,9 +45,16 @@ env.add(can_scene)
 #UR3 Base
 ur3, ur3_base_scene = add_UR3(env)
 set_UR3_pose(ur3, ur3_base_scene, SE3(0, 0.1, 0.15))
+
+#Camera.STL
+#just the model so you can see where the camera is. sits on the wrist and moves with the arm
+camera_location = os.path.join(scene_folder, "Camera.STL")
+camera_scene = Mesh(filename=camera_location, color="#E0E0E05C", scale=[0.001, 0.001, 0.001])
+update_camera_mesh(ur3, camera_scene)
+env.add(camera_scene)
 env.step()
 
 #park the UR3 between the two plates
 ur3_park_x = 0.75 #middle of both plates
-UR3_move_base(env, ur3, ur3_base_scene, ur3_park_x)
+UR3_move_base(env, ur3, ur3_base_scene, ur3_park_x, camera_mesh=camera_scene)
 input("Press Enter to continue...")
