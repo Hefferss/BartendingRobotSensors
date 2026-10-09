@@ -1,6 +1,7 @@
 import os
 import sys
 import swift
+import numpy as np
 from spatialgeometry import Mesh
 from math import pi
 from spatialmath import SE3
@@ -35,12 +36,24 @@ base_plate_place_scene.T = SE3(0.375, 0.65, 0) * trotz(-pi/2)
 env.add(base_plate_place_scene)
 
 #Can.STL
-#sitting in the middle of the pick plate for now. gets replaced by the random spawn function
-can_location = os.path.join(scene_folder, "Can.STL")
-can_scene = Mesh(filename=can_location, color="#C8102E", scale=[0.001, 0.001, 0.001])
-can_offset = SE3(-0.025, -0.025, 0) #Can.STL origin is on the corner not the centre of the base. delete this if the stl gets re-exported centred
-can_scene.T = SE3(0.75, -0.25, 0.01) * can_offset
-env.add(can_scene)
+#random spawning stuff
+spawn_x_range = [0.025, 1.475] #pick plate top minus the can radius so the whole can sits on the plate. gets cut down by the reach check
+spawn_y_range = [-0.425, -0.075]
+can_offset = SE3(-0.025, -0.025, 0) #Can.STL origin is on the corner not the centre of the base. Shouldve modeled it better but oh no
+
+def spawn_can(env, seed):
+    random = np.random.default_rng(seed) #week 4 content. 
+    can_x = random.uniform(spawn_x_range[0], spawn_x_range[1])
+    can_y = random.uniform(spawn_y_range[0], spawn_y_range[1])
+    can_pose = SE3(can_x, can_y, 0.01) #centre of the base of the can, sitting on top of the pick plate
+    can_location = os.path.join(scene_folder, "Can.STL")
+    can_scene = Mesh(filename=can_location, color="#C8102E", scale=[0.001, 0.001, 0.001])
+    can_scene.T = can_pose * can_offset
+    env.add(can_scene) 
+    return can_scene, can_pose #hands back two things like add_UR3 does
+
+random_result = 1 #change this to get a different spawn. like 1,2,3,4,5 etc
+can_scene, can_pose = spawn_can(env, random_result)
 
 #UR3 Base
 ur3, ur3_base_scene = add_UR3(env)
