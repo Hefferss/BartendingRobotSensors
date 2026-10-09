@@ -72,17 +72,32 @@ ur3_park_x = 0.75 #middle of both plates
 UR3_move_base(env, ur3, ur3_base_scene, ur3_park_x, camera_mesh=camera_scene)
 
 #look at the pick plate
-ur3_look_q = [1.9267, -1.7146, -1.9752, -1.0226, 1.5708, 0.3559] #joint angles that point the camera straight down at the spawn area, 0.44 above the plate
+ur3_look_q = [1.9267, -1.7146, -1.9752, -1.0226, 1.5708, 0.3559] #joint angles that point the camera straight down at the spawn area, 0.44 above the plate. found through moving the camera directly into the middle ofthe spawn and then doing it 0.44m above the base (which was a number i just made up), THEN USING Ikine to find it
 UR3_move_joints(env, ur3, ur3_look_q, camera_mesh=camera_scene)
 
 #camera reading
 camera_matrix = np.array([[500, 0, 320], [0, 500, 240], [0, 0, 1]]) #same numbers as the rgbd camera in the week 4 tutorial (f=0.005, rho=10e-6, 640 x 480)
+camera_random = np.random.default_rng(random_result + 1000) #random numbers for the camera noise. seeded so a trial repeats, + 1000 so its not the same numbers the spawn used (same trick as the week 2 tutorial)
+pixel_sigma = 1.0 #how many pixels the reading is out by on average. picked by me, not from a lab. will stress test and changed
  
 def can_camera_location(ur3, can_pose): #works out where the can shows up in the image. can_pose is the true position, only used here to make the reading
     camera_pose = ur3.fkine(ur3.q) * wrist_to_camera #where the camera is in the world
     can_to_camera = (camera_pose.inv() * can_pose.t).flatten() #can position in the camera frame. x right, y down, z forward (week 4 section 2.2, but the oter way around because of how its been put in and orientated)
-    can_position_to_camera = camera_matrix @ can_to_camera / can_to_camera[2] #pixel the can lands on. u = f/rho * X/Z + u0, v = f/rho * Y/Z + v0 from week 4 content
-    return can_position_to_camera[0:2]
- 
-can_position_to_camera = can_camera_location(ur3, can_pose)
+    can_position_to_camera = camera_matrix @ can_to_camera / can_to_camera[2] #pixel the can lands on. u = f/rho * X/Z + u0, v = f/rho * Y/Z + v0 from da week 4 stuff
+    can_position_to_camera = can_position_to_camera[0:2] + camera_random.normal(0, 1, 2) * pixel_sigma #pixel with a bit of noise on it
+    depth_true = can_to_camera[2] #d = Z, week 4 lecture
+    sigma = 0.0015 + 0.0022 * depth_true ** 2 #sigma_d grows with d^2, week 4 tutorial part 2
+    can_depth_noisy = depth_true + camera_random.normal(0, 1) * sigma #same line as the week 4 tutorial depth image. called noisy because im planning on using noise stuff to make it non noisy, cause right now it'll be affected by.... noise....
+    return can_position_to_camera, can_depth_noisy
+
+def can_location_estimate(ur3, can_position_to_camera, can_depth_noisy): #works the can position back out from the pixel and the depth. it never gets can_pose, only what the camera read
+    camera_pose = ur3.fkine(ur3.q) * wrist_to_camera #where the camera is in the world
+    pixel_number_location = np.array([can_position_to_camera[0], can_position_to_camera[1], 1]) #the pixel written as [u(x direction distance in pixels) v(y direction distance in pixels) 1]. called uv1 in the week 4 tutorial
+    can_from_camera_measurement = np.linalg.inv(camera_matrix) @ pixel_number_location * can_depth_noisy #point in the camera frame, called P_C in the week 4 tutorial 2.1. inv(K) @ [u v 1] is the ray, then scaled by the depth
+    can_pose_estimate = (camera_pose * can_from_camera_measurement).flatten() #moved into the world frame, x y z. same as T_RC * P_C in week 4 tutorial 2.2
+    return can_pose_estimate
+
+
+can_position_to_camera, can_depth_noisy = can_camera_location(ur3, can_pose)
+print("can shows up at pixel", can_position_to_camera, "depth", can_depth_noisy) #shows where the can shows up, thought it might be a good iudea in case we do stress tests and it bugs out and dies on me. 
 input("Press Enter to continue...")
