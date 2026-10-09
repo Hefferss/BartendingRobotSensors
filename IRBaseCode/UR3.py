@@ -34,9 +34,9 @@ def UR3_move_base(env, ur3, ur3_base_mesh, target_x, steps=30, camera_mesh=None)
         env.step(0.05)
 
 def UR3_move_and_grab(env, ur3, item, item_name="item", steps=30, camera_mesh=None): #move the UR3 to item position and attach it to the end-effector. uses inverse kinematics to find the joint angles needed to reach the item. also attaches it. would be a seperate command but i think concantenating it like this would be a wise decision here.
-    item_pos = item.T[0:3, 3] #gets item position
+    item_pos = item.T[0:3, 3] #gets item position. this reads the true position straight off the mesh, gets replaced by the camera estimate
     target_pose = SE3(item_pos[0], item_pos[1], item_pos[2]) #gest xyz pos
-    result = ur3.ikine_LM(target_pose, q0=ur3.q, mask=[1,1,1,0,0,0]) #usual
+    result = ur3.ikine_LM(ur3.base.inv() * target_pose, q0=ur3.q, mask=[1,1,1,0,0,0]) #usual. ikine_LM ignores ur3.base so the target has to be put in the base frame first
     q_matrix = jtraj(ur3.q, result.q, steps).q #stuff for the matrix
 
     for q in q_matrix:
@@ -54,3 +54,11 @@ def set_UR3_pose(ur3, ur3_base_scene, pose):
 def update_camera_mesh(ur3, camera_mesh): #keeps the camera model stuck to the wrist. call it every time the arm or base moves
     if camera_mesh is not None:
         camera_mesh.T = (ur3.fkine(ur3.q) * wrist_to_camera * camera_mesh_offset).A
+
+def UR3_move_joints(env, ur3, target_q, steps=30, camera_mesh=None): #moves the arm to a set of joint angles. same jtraj loop as UR3_move_and_grab, just without the inverse kinematics
+    q_matrix = jtraj(ur3.q, target_q, steps).q
+
+    for q in q_matrix:
+        ur3.q = q
+        update_camera_mesh(ur3, camera_mesh)
+        env.step(0.05)

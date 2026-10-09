@@ -10,7 +10,7 @@ from spatialmath.base import trotz
 scene_folder = os.path.dirname(os.path.abspath(__file__))
 ir_folder = os.path.join(scene_folder, "IRBaseCode") #UR3.py and the rail live in the IR code folder
 sys.path.append(ir_folder)
-from UR3 import add_UR3, UR3_move_base, UR3_move_and_grab, set_UR3_pose, update_camera_mesh
+from UR3 import add_UR3, UR3_move_base, UR3_move_and_grab, set_UR3_pose, update_camera_mesh, UR3_move_joints, wrist_to_camera
 
 env = swift.Swift()
 env.launch(realtime=True)
@@ -37,9 +37,9 @@ env.add(base_plate_place_scene)
 
 #Can.STL
 #random spawning stuff
-spawn_x_range = [0.025, 1.475] #pick plate top minus the can radius so the whole can sits on the plate. gets cut down by the reach check
-spawn_y_range = [-0.425, -0.075]
-can_offset = SE3(-0.025, -0.025, 0) #Can.STL origin is on the corner not the centre of the base. Shouldve modeled it better but oh no
+spawn_x_range = [0.55, 0.95] #stress tested
+spawn_y_range = [-0.25, -0.075] #stress tested
+can_offset = SE3(-0.025, -0.025, 0) #Can.STL origin is on the corner not the centre of the base. Shouldve modeled it better but oh well
 
 def spawn_can(env, seed):
     random = np.random.default_rng(seed) #week 4 content. 
@@ -52,7 +52,7 @@ def spawn_can(env, seed):
     env.add(can_scene) 
     return can_scene, can_pose #hands back two things like add_UR3 does
 
-random_result = 1 #change this to get a different spawn. like 1,2,3,4,5 etc
+random_result = 1 #change this to get a different spawn
 can_scene, can_pose = spawn_can(env, random_result)
 
 #UR3 Base
@@ -70,4 +70,19 @@ env.step()
 #park the UR3 between the two plates
 ur3_park_x = 0.75 #middle of both plates
 UR3_move_base(env, ur3, ur3_base_scene, ur3_park_x, camera_mesh=camera_scene)
+
+#look at the pick plate
+ur3_look_q = [1.9267, -1.7146, -1.9752, -1.0226, 1.5708, 0.3559] #joint angles that point the camera straight down at the spawn area, 0.44 above the plate
+UR3_move_joints(env, ur3, ur3_look_q, camera_mesh=camera_scene)
+
+#camera reading
+camera_matrix = np.array([[500, 0, 320], [0, 500, 240], [0, 0, 1]]) #same numbers as the rgbd camera in the week 4 tutorial (f=0.005, rho=10e-6, 640 x 480)
+ 
+def can_camera_location(ur3, can_pose): #works out where the can shows up in the image. can_pose is the true position, only used here to make the reading
+    camera_pose = ur3.fkine(ur3.q) * wrist_to_camera #where the camera is in the world
+    can_to_camera = (camera_pose.inv() * can_pose.t).flatten() #can position in the camera frame. x right, y down, z forward (week 4 section 2.2, but the oter way around because of how its been put in and orientated)
+    can_position_to_camera = camera_matrix @ can_to_camera / can_to_camera[2] #pixel the can lands on. u = f/rho * X/Z + u0, v = f/rho * Y/Z + v0 from week 4 content
+    return can_position_to_camera[0:2]
+ 
+can_position_to_camera = can_camera_location(ur3, can_pose)
 input("Press Enter to continue...")
