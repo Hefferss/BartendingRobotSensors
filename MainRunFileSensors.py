@@ -99,5 +99,14 @@ def can_location_estimate(ur3, can_position_to_camera, can_depth_noisy): #works 
 
 
 can_position_to_camera, can_depth_noisy = can_camera_location(ur3, can_pose)
+can_pose_estimate = can_location_estimate(ur3, can_position_to_camera, can_depth_noisy)
 print("can shows up at pixel", can_position_to_camera, "depth", can_depth_noisy) #shows where the can shows up, thought it might be a good iudea in case we do stress tests and it bugs out and dies on me. 
+input("Press Enter to continue...")
+
+#go to the can
+#only uses can_pose_estimate. keeps the camera pointing down and stops just above the top of the can
+can_height = 0.135 #measured off Can.STL
+grab_pose = SE3.Rt(ur3.fkine(ur3.q).R, [can_pose_estimate[0], can_pose_estimate[1], can_pose_estimate[2] + can_height + 0.01]) #same tool direction as the look pose, 0.01 above the top of the can
+result = ur3.ikine_LM(ur3.base.inv() * grab_pose, q0=ur3.q) #inverse kinematics like UR3_move_and_grab, with the same base frame fix
+UR3_move_joints(env, ur3, result.q, camera_mesh=camera_scene)
 input("Press Enter to continue...")
