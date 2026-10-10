@@ -101,6 +101,44 @@ def can_location_estimate(ur3, can_position_to_camera, can_depth_noisy): #works 
 can_position_to_camera, can_depth_noisy = can_camera_location(ur3, can_pose)
 can_pose_estimate = can_location_estimate(ur3, can_position_to_camera, can_depth_noisy)
 print("can shows up at pixel", can_position_to_camera, "depth", can_depth_noisy) #shows where the can shows up, thought it might be a good iudea in case we do stress tests and it bugs out and dies on me. 
+
+#camera check
+#checks the camera numbers are right. works out which pixel the can should be on, then sees how far off the camera's pixel was (week 3 part C)
+#uses the real can position, but only to mark the camera, not to move the robot
+camera_pose = ur3.fkine(ur3.q) * wrist_to_camera #where the camera is
+can_to_camera = (camera_pose.inv() * can_pose.t).flatten() #where the can is, measured from the camera
+pixel_expected = (camera_matrix @ can_to_camera / can_to_camera[2])[0:2] #the pixel the can should be on
+reprojection_error = np.linalg.norm(can_position_to_camera - pixel_expected) #how many pixels off the camera was. about 1 is good, big means the camera numbers are wrong
+print("reprojection error", reprojection_error, "pixels")
+
+#take lots of readings
+number_of_readings = 20 #get 20 readings and then get the average of those so that i can get a more accurate reading. the camera is noisy, so this should help. also stress test the camera code
+can_readings = []
+for k in range(number_of_readings):
+    reading_pixel, reading_depth = can_camera_location(ur3, can_pose)
+    can_readings.append([reading_pixel[0], reading_pixel[1], reading_depth]) #one reading is [u, v, depth]
+can_readings = np.array(can_readings)
+print("Can readings:", can_readings)
+
+#kalman filter on the can position
+#one reading is a bit off, so take 20 and blend them. each reading nudges the guess, and the guess gets steadier
+#this is the week 7 kalman filter (part B) with A and C left out, because the can doesnt move and the camera gives its position directly
+Qd = np.eye(3) * 1e-8 #how much the can might drift between readings. basically nothing
+xy_sigma = pixel_sigma * 0.44 / camera_matrix[0, 0] #1 pixel of noise is this many metres on the plate, from 0.44 up. about 0.9mm
+depth_sigma = 0.0015 + 0.0022 * 0.44 ** 2 #depth noise from 0.44 up, same formula as the camera. about 2mm
+Rn = np.diag([xy_sigma ** 2, xy_sigma ** 2, depth_sigma ** 2]) #how noisy one reading is in x, y, z
+xh = np.array([0.75, -0.1625, 0.01]) #first guess: the middle of the spawn area
+P = np.eye(3) * 0.2 ** 2 #how unsure the first guess is. about 20cm either way
+
+for k in range(number_of_readings):
+    reading_pixel, reading_depth = can_camera_location(ur3, can_pose)
+    y = can_location_estimate(ur3, reading_pixel, reading_depth) #this reading turned into x y z
+    P = P + Qd #a touch less sure before each reading
+    K = P @ np.linalg.inv(P + Rn) #how much to trust the new reading. near 1 = believe it, near 0 = ignore it
+    xh = xh + K @ (y - xh) #move the guess toward the reading by that much
+    P = (np.eye(3) - K) @ P #a bit more sure afterwards
+    print("reading", k + 1, "guess", xh, "unsure by", np.sqrt(np.diag(P)) * 1000, "mm, really out by", np.linalg.norm(xh - can_pose.t) * 1000, "mm") #real position only used here to score it
+can_pose_estimate = xh #the filter's answer is what the robot uses from here
 input("Press Enter to continue...")
 
 #go to the can
