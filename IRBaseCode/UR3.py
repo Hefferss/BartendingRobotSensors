@@ -55,10 +55,12 @@ def update_camera_mesh(ur3, camera_mesh): #keeps the camera model stuck to the w
     if camera_mesh is not None:
         camera_mesh.T = (ur3.fkine(ur3.q) * wrist_to_camera * camera_mesh_offset).A
 
-def UR3_move_joints(env, ur3, target_q, steps=30, camera_mesh=None): #moves the arm to a set of joint angles. same jtraj loop as UR3_move_and_grab, just without the inverse kinematics
+def UR3_move_joints(env, ur3, target_q, steps=30, camera_mesh=None, item=None, item_offset=None): #moves the arm to a set of joint angles. same jtraj loop as UR3_move_and_grab, just without the inverse kinematics
     q_matrix = jtraj(ur3.q, target_q, steps).q
 
     for q in q_matrix:
         ur3.q = q
         update_camera_mesh(ur3, camera_mesh)
+        if item is not None:
+            item.T = (ur3.fkine(ur3.q) * item_offset).A #carries the item along with the gripper
         env.step(0.05)

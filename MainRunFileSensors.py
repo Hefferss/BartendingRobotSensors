@@ -38,7 +38,7 @@ env.add(base_plate_place_scene)
 #Can.STL
 #random spawning stuff
 spawn_x_range = [0.55, 0.95] #stress tested
-spawn_y_range = [-0.25, -0.075] #stress tested
+spawn_y_range = [-0.325, -0.19] #stress tested. kept away from the rail so the arm doesnt hit the purple base plate when it reaches down
 can_offset = SE3(-0.025, -0.025, 0) #Can.STL origin is on the corner not the centre of the base. Shouldve modeled it better but oh well
 
 def spawn_can(env, seed):
@@ -127,7 +127,7 @@ Qd = np.eye(3) * 1e-8 #how much the can might drift between readings. basically 
 xy_sigma = pixel_sigma * 0.44 / camera_matrix[0, 0] #1 pixel of noise is this many metres on the plate, from 0.44 up. about 0.9mm
 depth_sigma = 0.0015 + 0.0022 * 0.44 ** 2 #depth noise from 0.44 up, same formula as the camera. about 2mm
 Rn = np.diag([xy_sigma ** 2, xy_sigma ** 2, depth_sigma ** 2]) #how noisy one reading is in x, y, z
-xh = np.array([0.75, -0.1625, 0.01]) #first guess: the middle of the spawn area
+xh = np.array([0.75, -0.2575, 0.01]) #first guess: the middle of the spawn area
 P = np.eye(3) * 0.2 ** 2 #how unsure the first guess is. about 20cm either way
 
 for k in range(number_of_readings):
@@ -147,4 +147,12 @@ can_height = 0.135 #measured off Can.STL
 grab_pose = SE3.Rt(ur3.fkine(ur3.q).R, [can_pose_estimate[0], can_pose_estimate[1], can_pose_estimate[2] + can_height + 0.01]) #same tool direction as the look pose, 0.01 above the top of the can
 result = ur3.ikine_LM(ur3.base.inv() * grab_pose, q0=ur3.q) #inverse kinematics like UR3_move_and_grab, with the same base frame fix
 UR3_move_joints(env, ur3, result.q, camera_mesh=camera_scene)
+input("Press Enter to continue...")
+
+#pick up the can
+#the can gets stuck to the gripper and lifted straight up
+can_in_gripper = ur3.fkine(ur3.q).inv() * SE3(np.asarray(can_scene.T), check=False) #where the can is compared to the gripper right now. it keeps that spot while its carried
+lift_pose = SE3(0, 0, 0.2) * ur3.fkine(ur3.q) #same spot, 0.2 higher
+result = ur3.ikine_LM(ur3.base.inv() * lift_pose, q0=ur3.q)
+UR3_move_joints(env, ur3, result.q, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper)
 input("Press Enter to continue...")
