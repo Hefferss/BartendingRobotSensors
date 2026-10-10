@@ -152,7 +152,15 @@ input("Press Enter to continue...")
 #pick up the can
 #the can gets stuck to the gripper and lifted straight up
 can_in_gripper = ur3.fkine(ur3.q).inv() * SE3(np.asarray(can_scene.T), check=False) #where the can is compared to the gripper right now. it keeps that spot while its carried
-lift_pose = SE3(0, 0, 0.2) * ur3.fkine(ur3.q) #same spot, 0.2 higher
+lift_pose = SE3(0, 0, 0.3) * ur3.fkine(ur3.q) #same spot, 0.3 higher. high enough to carry the can over the rail
 result = ur3.ikine_LM(ur3.base.inv() * lift_pose, q0=ur3.q)
 UR3_move_joints(env, ur3, result.q, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper)
+input("Press Enter to continue...")
+
+#put the can on the blue plate
+ur3_over_place_q = [5.039, -1.7066, -1.4656, -1.5402, 1.5708, 0.3266] #joint angles for above the middle of the blue plate. found with ikine, same way as ur3_look_q
+ur3_place_q = [5.0392, -2.9424, -1.7358, -0.0342, 1.5708, 0.3268] #same spot, lowered so the can sits on the plate
+UR3_move_joints(env, ur3, ur3_over_place_q, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper) #swing over the rail with the can
+UR3_move_joints(env, ur3, ur3_place_q, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper) #lower it onto the plate
+UR3_move_joints(env, ur3, ur3_over_place_q, camera_mesh=camera_scene) #let go and back off. no item passed in this time, so the can stays where it was put
 input("Press Enter to continue...")
