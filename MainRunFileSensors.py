@@ -22,22 +22,19 @@ ur3_rail_scene = Mesh(filename=ur3_rail_location, color="#C0C0C0", scale=[0.001,
 ur3_rail_scene.T = SE3(-1.5, 0.1, 0)
 env.add(ur3_rail_scene)
 
-#BasePlatePick.STL
-#turned so the long side runs along the rail. sits on the floor. top covers x 0 to 1.5, y -0.45 to -0.05, at z = 0.01
+#BasePlatePick.STL. turned so the long side runs along the rail. sits on the floor. top covers x 0 to 1.5, y -0.45 to -0.05, at z = 0.01
 base_plate_pick_location = os.path.join(scene_folder, "BasePlatePick.STL")
 base_plate_pick_scene = Mesh(filename=base_plate_pick_location, color="#2E8B57", scale=[0.001, 0.001, 0.001])
 base_plate_pick_scene.T = SE3(0, -0.05, 0) * trotz(-pi/2)
 env.add(base_plate_pick_scene)
 
-#BasePlatePlace.STL
-#other side of the rail. also on the floor. top covers x 0.375 to 1.125, y 0.25 to 0.65, at z = 0.01
+#BasePlatePlace.STL. other side of the rail. also on the floor. top covers x 0.375 to 1.125, y 0.25 to 0.65, at z = 0.01
 base_plate_place_location = os.path.join(scene_folder, "BasePlatePlace.STL")
 base_plate_place_scene = Mesh(filename=base_plate_place_location, color="#1E5AA8", scale=[0.001, 0.001, 0.001])
 base_plate_place_scene.T = SE3(0.375, 0.65, 0) * trotz(-pi/2)
 env.add(base_plate_place_scene)
 
 #Can.STL
-#random spawning stuff
 spawn_x_range = [0.55, 0.95] #stress tested
 spawn_y_range = [-0.325, -0.19] #stress tested. kept away from the rail so the arm doesnt hit the purple base plate when it reaches down
 can_offset = SE3(-0.025, -0.025, 0) #Can.STL origin is on the corner not the centre of the base. Shouldve modeled it better but oh well
@@ -53,7 +50,7 @@ def spawn_can(env, seed):
     env.add(can_scene) 
     return can_scene, can_pose #hands back two things like add_UR3 does
 
-random_result = int(np.random.default_rng().integers(0, 1000)) #picks a new spawn every run. swap this for a number (like 3) to repeat one exact trial
+random_result = int(np.random.default_rng().integers(0, 1000)) #picks a new spawn every run. swap this for a number to repeat one exact trial
 can_scene, can_pose = spawn_can(env, random_result)
 print("trial number", random_result, "can spawned at", can_pose.t) #real spawn position, only printed for testing. the robot never gets this
 
@@ -106,8 +103,7 @@ can_pose_estimate = can_location_estimate(ur3, can_position_to_camera, can_depth
 print("can shows up at pixel", can_position_to_camera, "depth", can_depth_noisy) #shows where the can shows up, thought it might be a good iudea in case we do stress tests and it bugs out and dies on me. 
 
 #camera check
-#checks the camera numbers are right. works out which pixel the can should be on, then sees how far off the camera's pixel was (week 3 part C)
-#uses the real can position, but only to mark the camera, not to move the robot
+#checks the camera numbers are right. works out which pixel the can should be on, then sees how far off the camera's pixel was (week 3 part C). uses the real can position, but only to mark the camera, not to move the robot
 camera_pose = ur3.fkine(ur3.q) * wrist_to_camera #where the camera is
 can_to_camera = (camera_pose.inv() * can_pose.t).flatten() #where the can is, measured from the camera
 pixel_expected = (camera_matrix @ can_to_camera / can_to_camera[2])[0:2] #the pixel the can should be on
@@ -118,8 +114,7 @@ print("reprojection error", reprojection_error, "pixels")
 number_of_readings = 20 #get 20 readings and then get the average of those so that i can get a more accurate reading. the camera is noisy, so this should help. also stress test the camera code
 
 #kalman filter on the can position
-#one reading is a bit off, so take 20 and blend them. each reading nudges the guess, and the guess gets steadier
-#this is the week 7 kalman filter (part B) with A and C left out, because the can doesnt move and the camera gives its position directly
+#one reading is a bit off, so take 20 and blend them. each reading nudges the guess, and the guess gets steadier. this is the week 7 kalman filter (part B) with A and C left out, because the can doesnt move and the camera gives its position directly
 Qd = np.eye(3) * 1e-8 #how much the can might drift between readings. basically nothing
 xy_sigma = pixel_sigma * 0.44 / camera_matrix[0, 0] #1 pixel of noise is this many metres on the plate, from 0.44 up. about 0.9mm
 depth_sigma = 0.0015 + 0.0022 * 0.44 ** 2 #depth noise from 0.44 up, same formula as the camera. about 2mm
@@ -138,8 +133,7 @@ for k in range(number_of_readings):
 can_pose_estimate = xh #the filter's answer is what the robot uses from here
 input("Press Enter to continue...")
 
-#go to the can
-#only uses can_pose_estimate. keeps the camera pointing down and stops just above the top of the can
+#go to the can .nly uses can_pose_estimate. keeps the camera pointing down and stops just above the top of the can
 can_height = 0.135 #measured off Can.STL
 grab_pose = SE3.Rt(ur3.fkine(ur3.q).R, [can_pose_estimate[0], can_pose_estimate[1], can_pose_estimate[2] + can_height + 0.01]) #same tool direction as the look pose, 0.01 above the top of the can
 result = ur3.ikine_LM(ur3.base.inv() * grab_pose, q0=ur3.q) #inverse kinematics like UR3_move_and_grab, with the same base frame fix
@@ -147,7 +141,6 @@ UR3_move_joints_lqr(env, ur3, result.q, encoder_random, camera_mesh=camera_scene
 input("Press Enter to continue...")
 
 #pick up the can
-#the can gets stuck to the gripper and lifted straight up
 can_in_gripper = ur3.fkine(ur3.q).inv() * SE3(np.asarray(can_scene.T), check=False) #where the can is compared to the gripper right now. it keeps that spot while its carried
 lift_pose = SE3(0, 0, 0.3) * ur3.fkine(ur3.q) #same spot, 0.3 higher. high enough to carry the can over the rail
 result = ur3.ikine_LM(ur3.base.inv() * lift_pose, q0=ur3.q)
