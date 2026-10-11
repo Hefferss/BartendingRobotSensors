@@ -2,7 +2,7 @@ import numpy as np
 import control as ct
 from UR3 import update_camera_mesh
 
-#joint model. one UR3 joint as a position servo, same as the dc motor position servo in the week 8 tutorial
+#joint model. one UR3 joint as a position servo, same as the dc motor position servo in the week 8 tutorial. the joint speed isnt measured, the observer further down works it out by predicting with this model and correcting with the encoder angle
 joint_inertia, friction, motor_constant = 0.01, 0.1, 0.05 #called J, b, k in the week 8 tutorial. the tutorial numbers, not measured off a real UR3
 joint_movement_actual = np.array([[0.0, 1.0], [0.0, -friction / joint_inertia]]) #called A in the tutorial. angle changes with speed. speed dies off with friction
 torque = np.array([[0.0], [motor_constant / joint_inertia]]) #called B in the tutorial. how the motor torque changes the speed
@@ -25,7 +25,7 @@ print("observer gain:", observer_gain.ravel(), "observer poles:", observer_poles
 #lqr gain: works out how hard the motor should push. week 8 tutorial servo cell
 angle_and_speed_cost = np.diag([100.0, 1.0]) #called Q in the tutorial. being off on the angle matters 100 times more than being off on the speed
 torque_cost = np.array([[1.0]]) #called R in the tutorial. how much we care about not overworking the motor
-lqr_gain, _, lqr_poles = ct.lqr(joint_movement_actual, torque, angle_and_speed_cost, torque_cost) #called Kr in the tutorial. tellls the system how hard to push the motor when the angle and speed are off.
+lqr_gain, _, lqr_poles = ct.lqr(joint_movement_actual, torque, angle_and_speed_cost, torque_cost) #called Kr in the tutorial. tellls the system how hard to push the motor when the angle and speed are off.used in the line 52
 print("lqr gain:", lqr_gain.ravel(), "lqr poles:", lqr_poles) #minus sign on the poles means the joint stops on the target
 
 #lqr check: drive the joint to a target angle using only the guess. same loop as servo_sim in the week 8 tutorial

@@ -53,8 +53,9 @@ def spawn_can(env, seed):
     env.add(can_scene) 
     return can_scene, can_pose #hands back two things like add_UR3 does
 
-random_result = 1 #change this to get a different spawn
+random_result = int(np.random.default_rng().integers(0, 1000)) #picks a new spawn every run. swap this for a number (like 3) to repeat one exact trial
 can_scene, can_pose = spawn_can(env, random_result)
+print("trial number", random_result, "can spawned at", can_pose.t) #real spawn position, only printed for testing. the robot never gets this
 
 #UR3 Base
 ur3, ur3_base_scene = add_UR3(env)
@@ -82,7 +83,7 @@ camera_matrix = np.array([[500, 0, 320], [0, 500, 240], [0, 0, 1]]) #same number
 camera_random = np.random.default_rng(random_result + 1000) #random numbers for the camera noise. seeded so a trial repeats, + 1000 so its not the same numbers the spawn used (same trick as the week 2 tutorial)
 pixel_sigma = 1.0 #how many pixels the reading is out by on average. picked by me, not from a lab. will stress test and changed
  
-def can_camera_location(ur3, can_pose): #works out where the can shows up in the image. can_pose is the true position, only used here to make the reading
+def can_camera_location(ur3, can_pose):#works out where the can shows up in the image. can_pose is the true position, only used here to make the reading. this is allowed because it doesnt actually get used in moving the robot. its needed because the simulated camera needs a real can position to take its reading of, otherwise theres nothing to look at. the robot only gets the noisy pixel and depth that come out
     camera_pose = ur3.fkine(ur3.q) * wrist_to_camera #where the camera is in the world
     can_to_camera = (camera_pose.inv() * can_pose.t).flatten() #can position in the camera frame. x right, y down, z forward (week 4 section 2.2, but the oter way around because of how its been put in and orientated)
     can_position_to_camera = camera_matrix @ can_to_camera / can_to_camera[2] #pixel the can lands on. u = f/rho * X/Z + u0, v = f/rho * Y/Z + v0 from da week 4 stuff
