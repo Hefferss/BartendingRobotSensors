@@ -5,7 +5,7 @@ from spatialmath import SE3
 from roboticstoolbox import models
 from roboticstoolbox import jtraj
 
-item_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Scene_parts")
+item_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "IRBaseCode", "Scene_parts")
 
 wrist_to_camera = SE3(0, 0, -0.06) * SE3.Ry(np.pi/2) * SE3.Rz(np.pi/2) #camera frame relative to the end-effector. camera z looks along the tool, sits 0.06 off to the side of the wrist. the camera maths has to use this same transform
 camera_mesh_offset = SE3.Rz(-np.pi/2) * SE3.Ry(-np.pi/2) * SE3(-0.035, -0.045, -0.0125) #only for drawing Camera.STL. lines the front of the lens up with the camera frame. change this if the stl gets re-exported

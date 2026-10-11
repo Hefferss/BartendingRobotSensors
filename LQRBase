@@ -1,0 +1,16 @@
+import numpy as np
+import control as ct
+
+#joint model. one UR3 joint as a position servo, same as the dc motor position servo in the week 8 tutorial
+joint_inertia, friction, motor_constant = 0.01, 0.1, 0.05 #called J, b, k in the week 8 tutorial. the tutorial numbers, not measured off a real UR3
+joint_movement_actual = np.array([[0.0, 1.0], [0.0, -friction / joint_inertia]]) #called A in the tutorial. angle changes with speed. speed dies off with friction
+torque = np.array([[0.0], [motor_constant / joint_inertia]]) #called B in the tutorial. how the motor torque changes the speed
+encoder_measurement = np.array([[1.0, 0.0]]) #called C in the tutorial. encoder: position only
+
+#controllability: can the one motor drive both states. week 5 tutorial part C
+controllability_matrix = ct.ctrb(joint_movement_actual, torque) #called Co in the tutorial
+print("controllable:", np.linalg.matrix_rank(controllability_matrix) == joint_movement_actual.shape[0]) #True means the motor can move both the angle and the speed
+
+#observability: can both states be worked out from the encoder alone. week 5 tutorial part C4
+observability_matrix = ct.obsv(joint_movement_actual, encoder_measurement) #called Ob in the tutorial
+print("observable:", np.linalg.matrix_rank(observability_matrix) == joint_movement_actual.shape[0]) #True means the speed can be worked out from the angle readings
