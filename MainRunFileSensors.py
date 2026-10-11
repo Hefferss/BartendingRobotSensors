@@ -10,7 +10,8 @@ from spatialmath.base import trotz
 scene_folder = os.path.dirname(os.path.abspath(__file__))
 ir_folder = os.path.join(scene_folder, "IRBaseCode") #UR3.py and the rail live in the IR code folder
 sys.path.append(ir_folder)
-from UR3 import add_UR3, UR3_move_base, UR3_move_and_grab, set_UR3_pose, update_camera_mesh, UR3_move_joints, wrist_to_camera
+from UR3 import add_UR3, UR3_move_base, set_UR3_pose, update_camera_mesh, wrist_to_camera
+from LQRBase import UR3_move_joints_lqr
 
 env = swift.Swift()
 env.launch(realtime=True)
@@ -72,8 +73,9 @@ ur3_park_x = 0.75 #middle of both plates
 UR3_move_base(env, ur3, ur3_base_scene, ur3_park_x, camera_mesh=camera_scene)
 
 #look at the pick plate
+encoder_random = np.random.default_rng(random_result + 2000) #random numbers for the encoder noise. seeded so a trial repeats, + 2000 so its not the same numbers the spawn or the camera used
 ur3_look_q = [1.9267, -1.7146, -1.9752, -1.0226, 1.5708, 0.3559] #joint angles that point the camera straight down at the spawn area, 0.44 above the plate. found through moving the camera directly into the middle ofthe spawn and then doing it 0.44m above the base (which was a number i just made up), THEN USING Ikine to find it
-UR3_move_joints(env, ur3, ur3_look_q, camera_mesh=camera_scene)
+UR3_move_joints_lqr(env, ur3, ur3_look_q, encoder_random, camera_mesh=camera_scene)
 
 #camera reading
 camera_matrix = np.array([[500, 0, 320], [0, 500, 240], [0, 0, 1]]) #same numbers as the rgbd camera in the week 4 tutorial (f=0.005, rho=10e-6, 640 x 480)
@@ -113,12 +115,6 @@ print("reprojection error", reprojection_error, "pixels")
 
 #take lots of readings
 number_of_readings = 20 #get 20 readings and then get the average of those so that i can get a more accurate reading. the camera is noisy, so this should help. also stress test the camera code
-can_readings = []
-for k in range(number_of_readings):
-    reading_pixel, reading_depth = can_camera_location(ur3, can_pose)
-    can_readings.append([reading_pixel[0], reading_pixel[1], reading_depth]) #one reading is [u, v, depth]
-can_readings = np.array(can_readings)
-print("Can readings:", can_readings)
 
 #kalman filter on the can position
 #one reading is a bit off, so take 20 and blend them. each reading nudges the guess, and the guess gets steadier
@@ -146,7 +142,7 @@ input("Press Enter to continue...")
 can_height = 0.135 #measured off Can.STL
 grab_pose = SE3.Rt(ur3.fkine(ur3.q).R, [can_pose_estimate[0], can_pose_estimate[1], can_pose_estimate[2] + can_height + 0.01]) #same tool direction as the look pose, 0.01 above the top of the can
 result = ur3.ikine_LM(ur3.base.inv() * grab_pose, q0=ur3.q) #inverse kinematics like UR3_move_and_grab, with the same base frame fix
-UR3_move_joints(env, ur3, result.q, camera_mesh=camera_scene)
+UR3_move_joints_lqr(env, ur3, result.q, encoder_random, camera_mesh=camera_scene)
 input("Press Enter to continue...")
 
 #pick up the can
@@ -154,13 +150,13 @@ input("Press Enter to continue...")
 can_in_gripper = ur3.fkine(ur3.q).inv() * SE3(np.asarray(can_scene.T), check=False) #where the can is compared to the gripper right now. it keeps that spot while its carried
 lift_pose = SE3(0, 0, 0.3) * ur3.fkine(ur3.q) #same spot, 0.3 higher. high enough to carry the can over the rail
 result = ur3.ikine_LM(ur3.base.inv() * lift_pose, q0=ur3.q)
-UR3_move_joints(env, ur3, result.q, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper)
+UR3_move_joints_lqr(env, ur3, result.q, encoder_random, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper)
 input("Press Enter to continue...")
 
 #put the can on the blue plate
 ur3_over_place_q = [5.039, -1.7066, -1.4656, -1.5402, 1.5708, 0.3266] #joint angles for above the middle of the blue plate. found with ikine, same way as ur3_look_q
 ur3_place_q = [5.0392, -2.9424, -1.7358, -0.0342, 1.5708, 0.3268] #same spot, lowered so the can sits on the plate
-UR3_move_joints(env, ur3, ur3_over_place_q, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper) #swing over the rail with the can
-UR3_move_joints(env, ur3, ur3_place_q, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper) #lower it onto the plate
-UR3_move_joints(env, ur3, ur3_over_place_q, camera_mesh=camera_scene) #let go and back off. no item passed in this time, so the can stays where it was put
+UR3_move_joints_lqr(env, ur3, ur3_over_place_q, encoder_random, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper) #swing over the rail with the can
+UR3_move_joints_lqr(env, ur3, ur3_place_q, encoder_random, camera_mesh=camera_scene, item=can_scene, item_offset=can_in_gripper) #lower it onto the plate
+UR3_move_joints_lqr(env, ur3, ur3_over_place_q, encoder_random, camera_mesh=camera_scene) #let go and back off. no item passed in this time, so the can stays where it was put
 input("Press Enter to continue...")
