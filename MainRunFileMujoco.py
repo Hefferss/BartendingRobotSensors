@@ -21,10 +21,13 @@ data.qpos[0:6] = ur3_start_q #puts the arm at those angles. qpos from the mujoco
 data.ctrl[:] = ur3_start_q #tells the motors to hold those angles. from raphaels move_ur3e.py, where he moves the arm by changing data.ctrl
 viewer = mujoco.viewer.launch_passive(model, data) #opens the window. from raphaels simulate_ur3e.py and move_ur3e.py
 
-def move_arm(target_q, steps=1000): #sends the arm to a set of joint angles with the ur3e's own motors. 1000 steps of 0.002s is 2 seconds. same idea as raphaels move_ur3e.py, gets swapped for the lqr later
+def move_arm(target_q, steps=1000, item_offset=None): #same job as UR3_move_joints_lqr in LQRBase.py, with the same item_offset idea. gets swapped for the lqr later
     data.ctrl[:] = target_q #tells the motors where to go. from raphaels move_ur3e.py
     for k in range(steps):
-        mujoco.mj_step(model, data) #moves the sim forward one step. from raphaels move_ur3e.py
+        mujoco.mj_step(model, data) #moves the sim forward one step, like env.step in swift
+        if item_offset is not None: #if its carrying the can. same as "if item is not None" in UR3_move_joints_lqr
+            data.qpos[6:9] = data.site_xpos[gripper_id] + item_offset #move the can with the gripper. same as item.T = ur3.fkine(ur3.q) * item_offset in swift
+            data.qvel[6:12] = 0 #stop gravity pulling it out of the gripper. swift had no gravity so didnt need this
         viewer.sync() #updates the window. from raphaels move_ur3e.py
         time.sleep(model.opt.timestep) #slows it down to about real speed
 
@@ -84,6 +87,51 @@ for k in range(number_of_readings):
     P = (np.eye(3) - K) @ P #a bit more sure afterwards
 print("kalman guess", xh, "unsure by", np.sqrt(np.diag(P)) * 1000, "mm, really out by", np.linalg.norm(xh - can_pose) * 1000, "mm") #real position only used here to score it
 can_pose_estimate = xh #the filter's answer is what the robot uses from here
+
+#moving the gripper. week 9 jacobian maths (q_dot = J+ * lambda * e). replaces ur3.ikine_LM from the swift version
+gripper_id = model.site("attachment_site").id #end of the wrist. same point as ur3.fkine(ur3.q) in swift. from the ur3e.xml
+servo_gain = 2.0 #lambda in the week 9 slides. picked by me. cause im super cool.
+
+def move_gripper(target_pose, steps=300, item_offset=None): #same job as ikine_LM then UR3_move_joints_lqr in swift, but done in small steps like rmrc in ir
+    for k in range(steps):
+        error = np.concatenate([target_pose - data.site_xpos[gripper_id], np.cross(data.site_xmat[gripper_id].reshape(3, 3)[:, 2], [0, 0, -1])]) #e in week 9: how far off it is, and how much its leaning. swift kept it pointing down with ur3.fkine(ur3.q).R
+        if np.linalg.norm(error) < 0.002: #close enough, 2mm
+            break
+        jacobian = np.zeros((6, model.nv))
+        mujoco.mj_jacSite(model, data, jacobian[0:3], jacobian[3:6], gripper_id) #robot jacobian J(q), mujoco docs. same as ur3.jacob0 in ir
+        move_arm(data.ctrl + np.linalg.pinv(jacobian[:, 0:6]) @ error * servo_gain * 0.05, steps=25, item_offset=item_offset) #q_dot = J+ * lambda * e, week 9. done for 0.05s
+    return np.linalg.norm(error)
+
+#go to the can. pbvs from week 9: take a photo, update the guess, move a bit closer, repeat. swift only looked once then moved
+for k in range(200):
+    reading_pixel, reading_depth = can_camera_location() #new photo from where the camera is now. same as the readings loop in swift
+    y = can_location_estimate(reading_pixel, reading_depth)
+    P = P + Qd #same week 7 kalman filter as above and in swift
+    K = P @ np.linalg.inv(P + Rn)
+    xh = xh + K @ (y - xh)
+    P = (np.eye(3) - K) @ P
+    if move_gripper(xh + np.array([0, 0, can_height + 0.15]), steps=1) < 0.002: #one step toward 0.15 above the can, so it stays in the picture
+        break
+can_pose_estimate = xh #the updated guess, same name as swift
+print("pbvs done after", k, "photos, gripper above the can by", (data.site_xpos[gripper_id] - can_pose)[0:2] * 1000, "mm in x y") #real position only used to score it
+input("Press Enter to continue...")
+
+#pick up the can. same steps as the swift version
+grab_pose = can_pose_estimate + np.array([0, 0, can_height + 0.01]) #0.01 above the top of the can, same as grab_pose in swift
+move_gripper(grab_pose) #same as ikine_LM(grab_pose) then UR3_move_joints_lqr in swift
+can_in_gripper = data.qpos[6:9] - data.site_xpos[gripper_id] #where the can is compared to the gripper right now. same as can_in_gripper in swift
+move_gripper(grab_pose + np.array([0, 0, 0.3]), item_offset=can_in_gripper) #same spot, 0.3 higher. same as lift_pose in swift
+input("Press Enter to continue...")
+
+#put the can on the blue plate. same steps as the swift version
+ur3_over_place_q = data.ctrl.copy() #same name as swift, but worked out instead of found with ikine
+ur3_over_place_q[0] = ur3_over_place_q[0] + np.pi #spin the base joint half way round, over the rail to the blue plate
+move_arm(ur3_over_place_q, steps=1500, item_offset=can_in_gripper) #swing over the rail with the can, same as swift
+place_pose = np.array([0.75, 0.45, 0.01 + can_height + 0.01]) #middle of the blue plate, can bottom sitting on it. same spot as ur3_place_q in swift
+move_gripper(place_pose, item_offset=can_in_gripper) #lower it onto the plate, same as swift
+move_gripper(place_pose + np.array([0, 0, 0.15])) #let go and back off. no item passed in so the can stays put, same as swift
+print("can placed at", data.qpos[6:9], "aiming for", place_pose[0:2]) #real position only used to score it
+input("Press Enter to continue...")
 
 while viewer.is_running(): #keeps the window open until you close it
     mujoco.mj_step(model, data)
