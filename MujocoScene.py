@@ -29,11 +29,14 @@ def build_scene():
     add_stl(spec, "ur3_base_plate", os.path.join(scene_folder, "BasePlatForUR3.stl"), pos=[0.67, 0.1, 0.15], rgba=[0.263, 0.059, 0.596, 1])
     spec.body("base").pos = [0.75, 0.1, 0.25]
 
-    #Camera. on the wrist looking out the end of the tool, 5cm off to the side. fovy 51.28 deg on a 640 x 480 picture gives f = 500 px, same K as the swift version
+    #Camera. on the wrist looking out the end of the tool, 5cm off to the side, at the realsenses colour lens. fovy 51.28 deg on a 640 x 480 picture gives f = 500 px, same K as the swift version
     wrist = spec.body("wrist_3_link")
-    wrist_camera = wrist.add_camera(name="wrist_cam", pos=[0, 0.08, 0.05], fovy=51.28)
+    wrist_camera = wrist.add_camera(name="wrist_cam", pos=[0.0325, 0.08, 0.05], fovy=51.28)
     wrist_camera.alt.type = mujoco.mjtOrientation.mjORIENTATION_XYAXES #which way the camera points. mujoco cameras look down their own -z
     wrist_camera.alt.xyaxes = [1, 0, 0, 0, 0, 1]
+    camera_model = mujoco.MjSpec.from_file(os.path.join(scene_folder, "realsense_d435i", "d435i.xml")) #intel realsense d435i rgb-d camera model from mujoco menagerie, the camera named in the week 10 slides
+    camera_mount = wrist.add_site(name="camera_mount", pos=[0, 0.08, 0.05], quat=[0.7071, -0.7071, 0, 0]) #where the camera body sits on the wrist, centred over it. its colour lens is 3.25cm along the bar, which is where wrist_cam is
+    camera_mount.attach_body(camera_model.body("d435i"), "camera_", "") #sticks the realsense onto the wrist
 
     #Can.STL. free to move so it can be spawned and picked up. stl origin is on its corner so its shifted back half the width, same as can_offset in swift
     can_body = spec.worldbody.add_body(name="can", pos=[0.75, -0.2575, 0.01])
