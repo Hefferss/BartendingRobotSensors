@@ -1,0 +1,29 @@
+https://mujoco.readthedocs.io/en/stable/python.html#model-editing :
+building the scene in python (MjSpec, add_mesh, add_geom, add_body, add_camera, add_freejoint, add_equality, spec.delete, spec.compile)
+
+https://mujoco.readthedocs.io/en/stable/XMLreference.html :
+what each setting means. mesh (file, scale), geom (type, pos, rgba), body pos (moving the arm onto the rail), camera (fovy, xyaxes, cameras look down -z), freejoint (can free to move), weld (grab glue, active), keyframes (why the ur3e home pose gets deleted)
+
+https://mujoco.readthedocs.io/en/stable/modeling.html#frame-orientations :
+euler and xyaxes (turning things)
+
+https://github.com/rFalque/mujoco_UR3_tutorial :
+loading the ur3e and MjData
+
+https://github.com/SouthColumn76/universal_robots_ur3e :
+the ur3e model itself
+
+week 4 tutorial part 2, CentralCamera(f=0.005, rho=10e-6, imagesize=[640, 480]) :
+camera fovy 51.28 deg so f = 500 px
+
+our swift MainRunFileSensors.py, now in the "UR3 stuff before i knew i had to do MUJOCO" folder :
+positions, colours, can_offset, scale 0.001
+
+my own picks, not from any source :
+camera position and direction
+
+git clone https://github.com/Hefferss/BartendingRobotSensors
+cd BartendingRobotSensors
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install mujoco numpy control
+.venv\Scripts\python.exe .\MainRunFileMujoco.py
