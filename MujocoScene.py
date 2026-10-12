@@ -29,6 +29,11 @@ def build_scene():
     add_stl(spec, "ur3_base_plate", os.path.join(scene_folder, "BasePlatForUR3.stl"), pos=[0.67, 0.1, 0.15], rgba=[0.263, 0.059, 0.596, 1])
     spec.body("base").pos = [0.75, 0.1, 0.25]
 
+    #UR3 motors. the ur3e file comes with its own position servos. swapped for plain torque motors so our lqr does the controlling, same as LQRBase.py in swift
+    for motor in spec.actuators:
+        motor.set_to_motor() #from the mujoco python docs (model editing)
+        motor.ctrlrange = motor.forcerange #ctrl is now a torque, so it gets the motors torque limits
+
     #Camera. on the wrist looking out the end of the tool, 5cm off to the side, at the realsenses colour lens. fovy 51.28 deg on a 640 x 480 picture gives f = 500 px, same K as the swift version
     wrist = spec.body("wrist_3_link")
     wrist_camera = wrist.add_camera(name="wrist_cam", pos=[0.0325, 0.08, 0.05], fovy=51.28)
@@ -42,9 +47,6 @@ def build_scene():
     can_body = spec.worldbody.add_body(name="can", pos=[0.75, -0.2575, 0.01])
     can_body.add_freejoint(name="can_joint")
     add_stl(spec, "can", os.path.join(scene_folder, "Can.STL"), pos=[-0.025, -0.025, 0], rgba=[0.784, 0.063, 0.18, 1], body=can_body)
-
-    #glue for picking up. off at the start, switched on when the gripper is on the can
-    spec.add_equality(name="grab", type=mujoco.mjtEq.mjEQ_WELD, name1="wrist_3_link", name2="can", objtype=mujoco.mjtObj.mjOBJ_BODY, active=False)
 
     model = spec.compile()
     data = mujoco.MjData(model)
