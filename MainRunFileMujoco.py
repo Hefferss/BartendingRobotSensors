@@ -2,6 +2,7 @@ import time
 import numpy as np
 import mujoco
 import mujoco.viewer
+import matplotlib.pyplot as plt
 from MujocoScene import build_scene
 from LQRPart import UR3_move_joints_lqr, joints_estimate
 
@@ -30,11 +31,22 @@ ur3_look_q = [-1.9766, -1.1482, 0.8327, -1.2553, -1.5708, 2.7358] #camera straig
 UR3_move_joints_lqr(model, data, viewer, ur3_look_q, encoder_random)
 
 #camera reading
-camera_matrix = np.array([[500, 0, 320], [0, 500, 240], [0, 0, 1]]) #same numbers as the rgbd camera in the week 4 tutorial. the mujoco camera is set up to match (fovy 51.28 deg on 640 x 480)
+camera_matrix = np.array([[499.766, 0, 319.254], [0, 499.829, 239.469], [0, 0, 1]]) #from CameraCalibration.py (week 3 calibration). the true camera is f = 500, centre (320, 240)
 camera_random = np.random.default_rng(random_result + 1000) #random numbers for the camera noise. + 1000 so its not the same numbers the spawn used (week 2 tutorial trick)
 pixel_sigma = 1.0 #how many pixels the reading is out by on average. picked by me, not from a lab
 can_height = 0.135 #measured off Can.STL
 renderer = mujoco.Renderer(model, 480, 640) #takes 640 x 480 photos from the wrist camera
+
+#camera window on the side, so you can watch what the wrist camera sees. matplotlib like the tutorials
+plt.ion() #lets the window keep updating while the code runs
+camera_window, camera_axes = plt.subplots()
+camera_picture = camera_axes.imshow(np.zeros((480, 640, 3), dtype=np.uint8)) #blank to start with
+can_marker, = camera_axes.plot([], [], 'g+', markersize=25, markeredgewidth=2) #green cross on where it found the can
+camera_axes.set_title("wrist camera")
+
+def show_camera(photo): #puts a photo in the camera window
+    camera_picture.set_data(photo)
+    plt.pause(0.001) #gives the window a moment to redraw
 
 def can_camera_location(): #takes a colour and depth photo, finds the red can in it and reads how far away it is. the robot side: it never gets can_pose
     renderer.update_scene(data, camera="wrist_cam")
@@ -46,6 +58,8 @@ def can_camera_location(): #takes a colour and depth photo, finds the red can in
     red_pixels = (photo[:, :, 0] > 120) & (photo[:, :, 1] < 80) & (photo[:, :, 2] < 100) #the can is the only red thing in the picture
     v, u = np.nonzero(red_pixels) #rows and columns of every red pixel
     can_position_to_camera = np.array([u.mean(), v.mean()]) + camera_random.normal(0, 1, 2) * pixel_sigma #middle of the red pixels, with a bit of noise on it
+    can_marker.set_data([u.mean()], [v.mean()]) #move the green cross onto the can
+    show_camera(photo)
     depth_true = depth_photo[int(v.mean()), int(u.mean())] #depth at the middle of the can. d = Z, week 4 lecture
     sigma = 0.0015 + 0.0022 * depth_true ** 2 #sigma_d grows with d^2, week 4 tutorial part 2
     can_depth_noisy = depth_true + camera_random.normal(0, 1) * sigma #same line as the week 4 tutorial depth image
@@ -93,12 +107,18 @@ servo_gain = 2.0 #lambda in the week 9 slides. picked by me
 
 def move_gripper(target_pose, steps=300, item_offset=None): #moves the gripper to target_pose in small steps, pointing straight down. same job as ikine then move in the swift version
     for k in range(steps):
-        error = np.concatenate([target_pose - data.site_xpos[gripper_id], np.cross(data.site_xmat[gripper_id].reshape(3, 3)[:, 2], [0, 0, -1])]) #e in the week 9 slides: how far off it is, and how much its leaning
+        position_error = target_pose - data.site_xpos[gripper_id] #how far the gripper is from where it should be
+        lean_error = np.cross(data.site_xmat[gripper_id].reshape(3, 3)[:, 2], [0, 0, -1]) #how much its leaning off straight down
+        error = np.concatenate([position_error, lean_error]) #both together, e in the week 9 slides
         if np.linalg.norm(error) < 0.002: #close enough, 2mm
             break
         jacobian = np.zeros((6, model.nv))
         mujoco.mj_jacSite(model, data, jacobian[0:3], jacobian[3:6], gripper_id) #robot jacobian J(q), mujoco docs. same as jacob0 in ir
-        UR3_move_joints_lqr(model, data, viewer, joints_estimate[:, 0] + np.linalg.pinv(jacobian[:, 0:6]) @ error * servo_gain * 0.2, encoder_random, steps=100, item_offset=item_offset) #q_dot = J+ * lambda * e, done for 0.2s from where the observer thinks the arm is
+        q_dot = np.linalg.pinv(jacobian[:, 0:6]) @ (servo_gain * error) #joint speeds that move the gripper toward the target. q_dot = J+ * lambda * e, week 9 slides
+        new_q = joints_estimate[:, 0] + q_dot * 0.2 #where the joints should be after 0.2s, starting from where the observer thinks they are
+        UR3_move_joints_lqr(model, data, viewer, new_q, encoder_random, steps=100, item_offset=item_offset) #move there for 0.2s with the lqr
+        renderer.update_scene(data, camera="wrist_cam")
+        show_camera(renderer.render()) #update the camera window as it moves
     return np.linalg.norm(error)
 
 #go to the can. pbvs from week 9: take a photo, update the guess, move a bit closer, repeat
@@ -112,6 +132,7 @@ for k in range(200):
     if move_gripper(xh + np.array([0, 0, can_height + 0.15]), steps=1) < 0.002: #one step toward 0.15 above the can, so it stays in the picture
         break
 can_pose_estimate = xh
+can_marker.set_data([], []) #hide the cross, the can gets picked up from here
 print("pbvs done after", k, "photos, gripper above the can by", (data.site_xpos[gripper_id] - can_pose)[0:2] * 1000, "mm in x y") #real position only used to score it
 input("Press Enter to continue...")
 
