@@ -5,13 +5,13 @@ import cv2
 from machinevisiontoolbox import CentralCamera, Image
 
 #make a checkerboard picture. 9 x 6 inside corners (where 4 squares meet), same as the week 3 board
-corners_across, corners_down, square_size = 9, 6, 0.03 #corners across, corners down, and each square is 3cm. called gx, gy, sq in the tutorial
+corners_across, corners_down, square_size = 9, 6, 0.03 #corners across, corners down, and each square is 3cm. called gx, gy, sq in the tutorial. same 9 x 6 corners as week 3, the tutorial squares are 2.5cm
 board = np.full((9 * 60, 12 * 60), 255, dtype=np.uint8) #a white page, room for 12 x 9 squares of 60 pixels (the board plus a white border)
 for j in range(7):
     for i in range(10):
         if (i + j) % 2 == 0: #every second square goes black, like a chess board
             board[(j + 1) * 60:(j + 2) * 60, (i + 1) * 60:(i + 2) * 60] = 0
-cv2.imwrite("checkerboard.png", board) #save it so mujoco can paint it onto a board
+cv2.imwrite("checkerboard.png", board) #save it so mujoco can paint it onto a board. making the board and the mujoco bench scene is not from a lab, the week 3 tutorial uses ready-made photos
 
 #a little world with just a camera and the checkerboard. built the same way as MujocoScene.py
 spec = mujoco.MjSpec()
@@ -43,7 +43,7 @@ P_board = np.array([[i * square_size, j * square_size, 0] for j in range(corners
 cal_cam = CentralCamera(f=K[0, 0], pp=(K[0, 2], K[1, 2]), imagesize=(640, 480), rho=1) #a pretend camera using our K
 errors = []
 for calibration_result in frames: #for each photo
-    ok, corners_found = cv2.findChessboardCorners(images[calibration_result.id].mono().image, (corners_across, corners_down)) #where the corners actually are in the photo. .image like measured_corners in the tutorial
+    ok, corners_found = cv2.findChessboardCorners(images[calibration_result.id].mono().array, (corners_across, corners_down)) #where the corners actually are in the photo. the tutorial uses .image, but newer versions of the toolbox renamed it .array
     cal_cam.pose = calibration_result.pose #put the pretend camera where the real one was for this photo. called fr.pose in the tutorial
-    errors.append(np.linalg.norm(corners_found.reshape(-1, 2).T - cal_cam.project_point(P_board), axis=0).mean()) #average pixel gap between "where they are" and "where K says they should be"
+    errors.append(np.linalg.norm(corners_found.reshape(-1, 2).T - cal_cam.project_point(P_board), axis=0).mean()) #average pixel gap between "where they are" and "where K says they should be". the tutorial also undistorts the photo and refines corners with cornerSubPix first. skipped here because the sim camera has no lens bend
 print(f'reprojection error {np.mean(errors):.3f} px') #under 1 pixel means the K is good
