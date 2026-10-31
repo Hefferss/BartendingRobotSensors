@@ -9,6 +9,12 @@ from RailEstimation import kf_step, plot_rail_log
 
 model, data = build_scene() #load our scene
 
+#disturbance switch. True = shove the wrist sideways partway through the pbvs, to show the kalman filter, observer and lqr recover. False = normal run. same push as the push5N trials in MainCopy
+push_on = False
+push_force = 5.0 #how hard the shove is, in N. 5N always recovered in the trials, 7N sometimes failed, 10N mostly failed
+push_at_photo = 20 #which pbvs photo the shove happens on. same as the trials
+push_steps = 50 #how long the shove lasts. 50 steps of 2ms = 0.1s. same as the trials
+
 #Can.STL random spawning, same ranges as the swift version
 spawn_x_range = [0.55, 0.95] #where along the green plate the can can appear. stress tested in the swift version
 spawn_y_range = [-0.325, -0.19] #how far across the green plate it can appear. stress tested in the swift version
@@ -21,7 +27,19 @@ print("trial number", random_result, "can spawned at", can_pose) #printed just s
 #UR3 starting pose and the window to watch it in
 ur3_start_q = [0, 0, 0, 0, 0, 0] #all six joint angles at zero to start. same as the swift version
 data.qpos[1:7] = ur3_start_q #put the arm at those angles. same job as mj_resetDataKeyframe in raphaels move_ur3e.py
-viewer = mujoco.viewer.launch_passive(model, data) #opens the 3d window. from raphaels simulate_ur3e.py and move_ur3e.py
+window = mujoco.viewer.launch_passive(model, data) #opens the 3d window. from raphaels simulate_ur3e.py and move_ur3e.py
+
+class PushViewer: #wraps the 3d window so the shove can be added every step. LQRPart calls viewer.sync() once every step, so the shove goes in there. same trick as the Recorder in MainCopy
+    def __init__(self, window):
+        self.window, self.push_steps_left = window, 0
+    def sync(self):
+        data.xfrc_applied[model.body("wrist_3_link").id, 1] = push_force if self.push_steps_left > 0 else 0.0 #pushes the wrist in y while the shove is on, zero the rest of the time. xfrc_applied is a force from outside the robot, mujoco docs
+        self.push_steps_left = max(0, self.push_steps_left - 1)
+        self.window.sync() #then draw the frame like normal
+    def is_running(self):
+        return self.window.is_running()
+
+viewer = PushViewer(window) #everything below uses this, same as using the window directly when push_on is False
 
 encoder_random = np.random.default_rng(random_result + 2000) #random numbers for the sensor wobble. + 2000 so theyre different from the can spawn and camera numbers, but the same trial number always gives the same wobble. same trick as seed + 2000 for the encoders in the week 2 tutorial (part B), same as swift
 
@@ -58,6 +76,10 @@ def can_camera_location(): #SENSING: takes a colour photo and a depth photo, fin
     renderer.disable_depth_rendering()
     red_pixels = (photo[:, :, 0] > 120) & (photo[:, :, 1] < 80) & (photo[:, :, 2] < 100) #find the red pixels. lots of red, not much green or blue. the can is the only red thing. NOT from a lab: colour cut-off numbers picked by me. the true/false mask idea is like valid and good in the week 4 tutorial. getting swapped for week 4 RANSAC (find_objects)
     red_rows, red_columns = np.nonzero(red_pixels) #row (red_rows) and column (red_columns) of every red pixel. like np.flatnonzero in week 4 find_objects
+    if len(red_rows) == 0: #the can isnt in the picture (out of view or blocked). no reading this time, the kalman filter just keeps its guess
+        can_marker.set_data([], [])
+        show_camera(photo)
+        return None, None
     can_position_to_camera = np.array([red_columns.mean(), red_rows.mean()]) + camera_random.normal(0, 1, 2) * pixel_sigma #the middle of all the red pixels = where the can is in the picture, like the centroid (mean) in week 4 find_objects. plus a bit of wobble like a real camera
     can_marker.set_data([red_columns.mean()], [red_rows.mean()]) #move the green cross onto the can
     show_camera(photo)
@@ -70,8 +92,16 @@ def can_location_estimate(can_position_to_camera, can_depth_noisy): #turns "pixe
     pixel_number_location = np.array([can_position_to_camera[0], can_position_to_camera[1], 1]) #the pixel with a 1 stuck on the end, the maths needs it. called uv1 in the week 4 tutorial
     can_from_camera_measurement = np.linalg.inv(camera_matrix) @ pixel_number_location * can_depth_noisy #undo the camera zoom to get a direction, then go that far along it = where the can is from the camera. P_C in the week 4 tutorial 2.1
     can_from_camera_measurement = can_from_camera_measurement * np.array([1, -1, -1]) #mujoco cameras point a different way to the week 4 maths (looks down -z with y up, instead of z forward y down). flip y and z to match
-    can_top = data.cam_xpos[0] + data.cam_xmat[0].reshape(3, 3) @ can_from_camera_measurement #turn "from the camera" into "in the world" using where the camera is and which way its facing. same as T_RC * P_C in week 4 tutorial 2.2
+    robot_guess = robot_as_estimated() #where the camera is, worked out from our guesses of the rail and joints, not the real ones
+    can_top = robot_guess.cam_xpos[0] + robot_guess.cam_xmat[0].reshape(3, 3) @ can_from_camera_measurement #turn "from the camera" into "in the world" using where the camera is and which way its facing. same as T_RC * P_C in week 4 tutorial 2.2
     return can_top - np.array([0, 0, can_height]) #the camera sees the top of the can, take off its height to get the bottom, same spot as can_pose
+
+robot_guess_data = mujoco.MjData(model) #a copy of the robot that never moves the real one. same idea as belief_data in MainCopy and gravity_data in LQRPart
+def robot_as_estimated(): #puts the copy at our guesses of the rail and the six joints, then works out where the camera and gripper would be. same job as ur3.fkine(ur3.q) in swift, where ur3.q was the guess
+    robot_guess_data.qpos[0] = rail_estimate[0] #rail kf guess
+    robot_guess_data.qpos[1:7] = joints_estimate[:, 0] #observer guess of the joint angles
+    mujoco.mj_forward(model, robot_guess_data) #works out the camera and gripper spots from those. mujoco docs
+    return robot_guess_data
 
 can_position_to_camera, can_depth_noisy = can_camera_location() #first photo, just for the camera check below
 
@@ -93,7 +123,11 @@ can_guess = np.array([0.75, -0.2575, 0.01]) #called xh in the tutorial. first gu
 can_unsure = np.eye(3) * 0.2 ** 2 #called P in the tutorial. how unsure that first guess is. about 20cm either way
 
 def can_kf_update(can_guess, can_unsure): #take a photo, turn it into x y z, then do one guess-then-fix step with the same week 7 filter as the rail. A and C are just 1s (the can doesnt move, and the reading is already x y z). no motor, so B is 0
-    y = can_location_estimate(*can_camera_location())
+    can_position_to_camera, can_depth_noisy = can_camera_location()
+    if can_position_to_camera is None: #no can in the picture: do the guess step only and skip the fix step. A is 1s so the guess stays put, it just gets a bit less sure (P grows by Qd). week 7 predict step
+        print("can not in the picture, keeping the last guess")
+        return can_guess, can_unsure + can_model_noise
+    y = can_location_estimate(can_position_to_camera, can_depth_noisy)
     return kf_step(can_guess, can_unsure, 0, y, np.eye(3), np.zeros((3, 1)), np.eye(3), can_model_noise, camera_noise)
 
 for k in range(number_of_readings): #take 20 photos, each one makes the guess better
@@ -110,13 +144,14 @@ servo_gain = 2.0 #lambda in the week 9 slides. how fast to close the gap. picked
 
 def move_gripper(target_pose, steps=300, item_offset=None): #moves the gripper to target_pose in small steps, keeping it pointing straight down. same job as ikine then move in the swift version
     for k in range(steps):
-        position_error = target_pose - data.site_xpos[gripper_id] #how far the gripper is from where it should be
-        lean_error = np.cross(data.site_xmat[gripper_id].reshape(3, 3)[:, 2], [0, 0, -1]) #how much its tilted away from straight down. the week 9 PBVS error uses the rotation angle (theta u), this cross product is a simpler version that matches it for small tilts. np.cross is not from a lab
+        robot_guess = robot_as_estimated() #where we think the gripper is, from the rail and joint guesses. the real gripper spot is never used to steer
+        position_error = target_pose - robot_guess.site_xpos[gripper_id] #how far the gripper is from where it should be
+        lean_error = np.cross(robot_guess.site_xmat[gripper_id].reshape(3, 3)[:, 2], [0, 0, -1]) #how much its tilted away from straight down. the week 9 PBVS error uses the rotation angle (theta u), this cross product is a simpler version that matches it for small tilts. np.cross is not from a lab
         error = np.concatenate([position_error, lean_error]) #both together. e in the week 9 slides (PBVS: translation stacked on rotation)
         if np.linalg.norm(error) < 0.002: #close enough (2mm), stop
             break
         jacobian = np.zeros((6, model.nv))
-        mujoco.mj_jacSite(model, data, jacobian[0:3], jacobian[3:6], gripper_id) #the jacobian: how much the gripper moves when each joint turns a little. mujoco docs, same as jacob0 in ir
+        mujoco.mj_jacSite(model, robot_guess, jacobian[0:3], jacobian[3:6], gripper_id) #the jacobian: how much the gripper moves when each joint turns a little. mujoco docs, same as jacob0 in ir
         q_dot = np.linalg.pinv(jacobian[:, 1:7]) @ (servo_gain * error) #flip that around: how fast to turn each joint to close the gap. q_dot = J+ * v with v = lambda * e, week 9 slides (PBVS control law and robot joint velocities). columns 1 to 6 are the arm, column 0 is the rail which stays still here
         new_q = joints_estimate[:, 0] + q_dot * 0.2 #where the joints should be 0.2s from now, starting from our guess of where they are. 0.2s picked by me
         UR3_move_joints_lqr(model, data, viewer, new_q, encoder_random, steps=100, item_offset=item_offset) #move there over 0.2s with the lqr
@@ -126,6 +161,9 @@ def move_gripper(target_pose, steps=300, item_offset=None): #moves the gripper t
 
 #go to the can. pbvs from week 9: take a photo, fix the guess, move a bit closer, repeat until the error is small. getting closer makes the photos better, because depth wobble grows with distance squared (week 4)
 for k in range(200):
+    if push_on and k == push_at_photo: #disturbance switch: shove the wrist sideways for 0.1s
+        viewer.push_steps_left = push_steps
+        print("push!", push_force, "N on the wrist")
     can_guess, can_unsure = can_kf_update(can_guess, can_unsure) #new photo from where the camera is now, same filter as above
     if move_gripper(can_guess + np.array([0, 0, can_height + 0.15]), steps=1) < 0.002: #one small move toward 0.15m above the can, high enough that it stays in the picture. stop once its there
         break
