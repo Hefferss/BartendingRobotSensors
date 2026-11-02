@@ -15,6 +15,8 @@ push_force = 5.0 #how hard the shove is, in N. 5N always recovered in the trials
 push_at_photo = 20 #which pbvs photo the shove happens on. same as the trials
 push_steps = 50 #how long the shove lasts. 50 steps of 2ms = 0.1s. same as the trials
 
+stop_between_steps = False #True = waits for Enter after each stage (look, pick, place). False = one continuous run after the first Enter, good for recording the video
+
 #Can.STL random spawning, same ranges as the swift version
 spawn_x_range = [0.55, 0.95] #where along the green plate the can can appear. stress tested in the swift version
 spawn_y_range = [-0.325, -0.19] #how far across the green plate it can appear. stress tested in the swift version
@@ -169,14 +171,14 @@ for k in range(200):
         break
 can_marker.set_data([], []) #hide the green cross, the can gets picked up from here
 print("pbvs done after", k, "photos, gripper above the can by", (data.site_xpos[gripper_id] - can_pose)[0:2] * 1000, "mm in x y") #the real spot is only used here to mark it
-input("Press Enter to continue...")
+if stop_between_steps: input("Press Enter to continue...")
 
 #pick up the can
 grab_pose = can_guess + np.array([0, 0, can_height + 0.01]) #1cm above the top of the can, same as the swift version
 move_gripper(grab_pose) #go down to it
 can_in_gripper = data.qpos[7:10] - data.site_xpos[gripper_id] #where the can sits compared to the gripper. it keeps that spot while being carried, same as the swift version
 move_gripper(grab_pose + np.array([0, 0, 0.3]), item_offset=can_in_gripper) #lift it 0.3m straight up
-input("Press Enter to continue...")
+if stop_between_steps: input("Press Enter to continue...")
 
 #put the can on the blue plate
 ur3_over_place_q = joints_estimate[:, 0].copy() #start from our guess of where the arm is now
@@ -186,7 +188,7 @@ place_pose = np.array([0.75, 0.45, 0.01 + can_height + 0.01]) #middle of the blu
 move_gripper(place_pose, item_offset=can_in_gripper) #lower it onto the plate
 move_gripper(place_pose + np.array([0, 0, 0.15])) #let go and move back up. no can passed in, so it stays where it was put
 print("can placed at", data.qpos[7:10], "aiming for", place_pose[0:2]) #the real spot is only used here to mark it
-input("Press Enter to continue...")
+if stop_between_steps: input("Press Enter to continue...")
 
 ur3_end_q = joints_estimate[:, 0].copy() #where the arm finished
 while viewer.is_running(): #keeps going until you close the 3d window

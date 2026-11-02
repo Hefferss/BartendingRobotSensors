@@ -6,6 +6,8 @@ import mujoco
 from MujocoScene import build_scene
 from RailEstimation import make_rail_model, kf_step
 
+sim_speed = 3.0 #how fast the 3d window plays. 1 = real speed, 3 = 3x faster. only changes the waiting between steps, the physics is the same
+
 #joint model. one UR3 joint as a position servo, same as the dc motor position servo in the week 8 tutorial. the joint speed isnt measured, the observer further down works it out by predicting with this model and correcting with the encoder angle
 model, data = build_scene() #our scene, only used here to read how heavy each joint is
 mass_matrix = np.zeros((model.nv, model.nv))
@@ -76,4 +78,4 @@ def UR3_move_joints_lqr(model, data, viewer, target_q, encoder_random, steps=100
             data.qpos[7:10] = data.site_xpos[model.site("attachment_site").id] + item_offset #move the can with the gripper. qpos[7:10] is the can now the rail is first
             data.qvel[7:13] = 0 #stop gravity pulling it out of the gripper
         viewer.sync() #draw the next frame
-        time.sleep(model.opt.timestep) #slows it down to about real speed
+        time.sleep(model.opt.timestep / sim_speed) #slows it down to about real speed, divided by sim_speed
