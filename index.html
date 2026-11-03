@@ -6,7 +6,7 @@
         content="Sensing, estimation and control for vision-guided pick and place with a UR3e on a rail in MuJoCo. 41014 Sensors and Control in Mechatronic Systems, UTS.">
   <meta name="keywords" content="41014, UR3e, MuJoCo, Kalman filter, LQR, PBVS, visual servoing">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vision-Guided Pick and Place with a UR3e on a Rail</title>
+  <title>Bartending Robots - Vision-Guided UR3</title>
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
         rel="stylesheet">
@@ -19,6 +19,12 @@
         href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
   <link rel="stylesheet" href="./static/css/index.css">
   <link rel="icon" href="./static/images/favicon.png">
+
+  <!-- YELLOW = content written by Claude (class "cw"). Team-written content has no highlight.
+       To remove all highlighting before submission, delete this style block. -->
+  <style>
+    .cw { background: #fff176 !important; }
+  </style>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="./static/js/fontawesome.all.min.js"></script>
@@ -38,7 +44,7 @@
           <div class="is-size-5 publication-authors">
             <span class="author-block">William Richardson,</span>
             <span class="author-block">Jack Heffernan,</span>
-            <span class="author-block">James Witcombe</span>
+            <span class="author-block">James Witcombe,</span>
             <span class="author-block">Banjo Taylor</span>
           </div>
           <div class="is-size-5 publication-authors">
@@ -80,47 +86,17 @@
 </section>
 
 
-<!-- ===== TEASER ===== -->
+<!-- ===== TEASER / INTRODUCTION ===== -->
 <section class="hero teaser">
   <div class="container is-max-desktop">
     <div class="hero-body">
       <img src="./static/images/pipeline.svg"
            class="teaser-image"
-           alt="System pipeline: sensors feed estimators, estimators feed controllers, controllers drive the UR3e on a rail."/>
+           alt="System pipeline: sensors feed estimators, estimators feed controllers, controllers drive the UR3 on a rail."/>
       <h2 class="subtitle has-text-centered">
-        Our system uses a UR3 robot arm on a linear rail, using Mujoco to simulate it finding a randomly placed can on a mounted RGB-D camera, picking it up and placing it on a target plate. The camera reading from the RGB-D camera is turned into a 3D position, then cleaned up using Kalma n filters, and used to give information to the rail and arm with LAR controllers and position-based visual servoing. The controllers use estimation states and never ground truth, which is only added for testing purposes. 
-        This project page is split into four main parts (Sensing, Estimation, Control and Results), with each team member leading the content for one part. Each part explains how that component works in our system, the design choices behind them, and how we iterated on and tested them. 
+        Our system uses a UR3 robot arm on a linear rail, using Mujoco to simulate it finding a randomly placed can on a mounted RGB-D camera, picking it up and placing it on a target plate. The camera reading from the RGB-D camera is turned into a 3D position, then cleaned up using Kalman filters, and used to give information to the rail and arm with LQR controllers and position-based visual servoing. The controllers use estimation states and never ground truth, which is only added for testing purposes.
+        This project page is split into four main parts (Sensing, Estimation, Control and Results), with each team member leading the content for one part. Each part explains how that component works in our system, the design choices behind them, and how we iterated on and tested them.
       </h2>
-    </div>
-  </div>
-</section>
-
-
-<!-- ===== TEAM AND CONTRIBUTIONS ===== -->
-<section class="hero is-light is-small">
-  <div class="hero-body">
-    <div class="container is-max-desktop">
-      <h2 class="title is-3 has-text-centered">Team and individual contributions</h2>
-      <div class="columns">
-        <div class="column">
-          <div class="box">
-            <p class="title is-5">William Richardson</p>
-            <p><mark>[Role and specific contribution, e.g. which Part (A to E) and which code files.]</mark></p>
-          </div>
-        </div>
-        <div class="column">
-          <div class="box">
-            <p class="title is-5">Jack Heffernan</p>
-            <p><mark>[Role and specific contribution.]</mark></p>
-          </div>
-        </div>
-        <div class="column">
-          <div class="box">
-            <p class="title is-5">James Witcombe</p>
-            <p><mark>[Role and specific contribution.]</mark></p>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -131,17 +107,17 @@
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
-        <h2 class="title is-3">Abstract</h2>
+        <h2 class="title is-3 cw">Abstract</h2>
         <div class="content has-text-justified">
-          <p>
-            We present a vision-guided pick-and-place system for a UR3e arm mounted on a linear rail,
+          <p class="cw">
+            We present a vision-guided pick-and-place system for a UR3 arm mounted on a linear rail,
             simulated in MuJoCo. This is our own project, close in scope to Track B. A wrist-mounted RGB-D camera,
             calibrated from checkerboard views, measures the pixel position and depth of a randomly placed can.
             A Kalman filter fuses repeated measurements into a 3D position estimate with quantified uncertainty.
             Joint torques come from per-joint LQR controllers driven by observer estimates of angle and speed,
             with gravity feed-forward, while the rail has its own Kalman filter and discrete LQR.
             Position-based visual servoing (PBVS) brings the gripper above the can before it is grasped and
-            placed on a target plate. We evaluate <mark>[N]</mark> randomised trials and report estimation
+            placed on a target plate. We evaluate [N] randomised trials and report estimation
             consistency, tracking error, control effort and placement accuracy.
           </p>
         </div>
@@ -150,15 +126,15 @@
 
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
-        <h2 id="video" class="title is-3">Demo video (5 minutes)</h2>
+        <h2 id="video" class="title is-3 cw">Demo video (5 minutes)</h2>
         <div class="publication-video">
           <!-- Replace VIDEO_ID with your YouTube video ID (upload as Unlisted). -->
           <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0&amp;showinfo=0"
                   frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
-        <p class="is-size-6">
-          The video shows the completed task, a varied or disturbed trial, and the estimate with its
-          uncertainty alongside the true state.
+        <p class="is-size-6 cw">
+          [Replace VIDEO_ID in the embed above.] The video shows the completed task, a varied or disturbed trial,
+          and the estimate with its uncertainty alongside the true state.
         </p>
       </div>
     </div>
@@ -166,218 +142,327 @@
 </section>
 
 
-<!-- ===== TECHNICAL SECTIONS ===== -->
 <section class="section">
   <div class="container is-max-desktop">
     <div class="content has-text-justified">
 
-      <!-- Modelling -->
-      <h2 class="title is-3" id="modelling">1. Modelling</h2>
+      <!-- ===== OVERVIEW (team) ===== -->
+      <h2 class="title is-3" id="overview">Overview</h2>
       <p>
-        <strong>Joints.</strong> Each of the six arm joints is modelled as a rotating inertia with state
-        x = [&theta;, &theta;&#775;] and torque input &tau;. With friction set to zero, the model is a double integrator:
-        &theta;&#776; = (k/J)&tau;, so A = [[0, 1], [0, 0]], B = [0; k/J], C = [1, 0].
-        The inertia J of each joint is read from the UR3e mass matrix in MuJoCo (diagonal entries at the zero pose), and k = 1.
+        A UR3 on a 1.5-meter-long linear rail picks up a coke can from a randomly generated location on a green plate
+        and places it on a blue plate on the other side of the rail. Every run has the following steps play out
+        (as is depicted in the flowchart):
       </p>
+      <ol>
+        <li>The arm looks down from a fixed position, allowing the wrist mounted camera to look 0.6m above the spawn area.</li>
+        <li>The RGB-D camera finds the red can (the centroid red pixel), and reads its depth, sensing it and turning that data into an xyz position.</li>
+        <li>The Kalman filter estimates the can position by utilizing 20 photographs, using uncertainties defined in the code to work out its position.</li>
+        <li>The rail drives the UR3 towards the can to line up with it, using the rail Kalman filter and an LQR.</li>
+        <li>The PBVS moves the gripper closer to the can, until it is 0.15m above the can, constantly taking photos and updating the filter each movement.</li>
+        <li>The arm grabs and lifts the can, swings it over the rail and then back down onto the blue plate.</li>
+      </ol>
       <p>
-        <strong>Controllability and observability.</strong> Both matrices have rank 2 for every joint, so the full
-        state can be driven by torque and reconstructed from the angle measurement alone.
-        Speed is not measured directly. It is observable because it is the rate of change of the measured angle.
-      </p>
-      <p>
-        <strong>Rail.</strong> The base slides on a prismatic joint with damping 100 and force limit &plusmn;200 N.
-        The model is a discrete position and velocity system (stepped at 2 ms) with position measured by an encoder.
-      </p>
-      <p>
-        <strong>Assumptions.</strong> Joints are treated as independent (coupling between joints is ignored),
-        inertia is constant (taken at one pose), and gravity is handled by feed-forward rather than in the model.
-        Remaining coupling acts as a disturbance that feedback must reject.
+        Each joint in the robot throughout this process is driven using LQR and has gravity compensation, using joint angles
+        and speeds estimated by observers, which have noise. No controller in this simulator uses the true positions in code,
+        but the true joint positions are used to compare the robots estimations to for the purposes of this report.
       </p>
 
-      <!-- Frames -->
-      <h2 class="title is-3" id="frames">2. Frames</h2>
-      <p>The chain from sensor to the quantity the controller acts on:</p>
-      <ol>
+      <!-- ===== MODELLING (team) ===== -->
+      <h2 class="title is-3" id="modelling">Modelling - All</h2>
+      <p>
+        This section is brief, as most of the individual sections explain how all the code for each section interacts with
+        each other, but some parts of the project are integral to all parts and will be explained below:
+      </p>
+
+      <h3 class="title is-4">Joints</h3>
+      <ul>
+        <li><strong>State:</strong> Uses the angle and the speed. Gets given the motor torque, and the sensor utilizes an encoder, which is only able to read angles.</li>
+        <li><strong>Physics:</strong> Newtons to work out spinning forces. The formula for the torque is angular acceleration multiplied by the inertia.</li>
+        <li><strong>Matrices:</strong> A matrix [[0, 1], [0, 0]] works out what happens with no motor push (the angle changes by the speed, and the speed stays the same). B matrix [[0], [1/J]] figures out what the motor does as it changes the speed (a heavier joint speeds up less). C matrix [1, 0] defines what the sensor can see (angle but not speed).</li>
+        <li><strong>Assumptions:</strong> No friction, gravity is handled separately (Mujoco simulates it, and the controller cancels it with an extra torque worked out at the estimated joint angles), and each joint is worked out completely independently, even though in reality they&rsquo;d affect each other.</li>
+        <li><strong>Content used:</strong> The Week 8 tutorial&rsquo;s DC motor position servo model (same A, B, C shape, with our own J values swapped in from the MuJoCo UR3 model), and the Week 5 tutorial for the rank checks.</li>
+      </ul>
+
+      <h3 class="title is-4">Rail Model</h3>
+      <ul>
+        <li><strong>State:</strong> Uses the position and the speed of the base along the rail. Gets given the motor force, and the sensor utilizes an encoder, which is only able to read position.</li>
+        <li><strong>Physics:</strong> uses F=MA with rail friction. The mass is 10.7 kg (the base and the arm together), the friction (damping) is 100 N/m/s, and has 2ms steps.</li>
+        <li><strong>Matrices:</strong> A matrix [[1, 0.002], [0, 0.981]] works out what happens with no motor push (the position moves by speed &times; 0.002 s, and the speed drops a little bit each step because of friction). B matrix [[0], [0.00019]] figures out what the motor does as it changes the speed (it&rsquo;s tiny because the base is heavy and each step is really short). C matrix [1, 0] defines what the sensor can see (position but not speed).</li>
+        <li><strong>Assumptions:</strong> The arm swinging around pushes the base a bit, but that isn&rsquo;t in the model, so we cover it with the doubt (Q) in the rail Kalman filter instead.</li>
+        <li><strong>Content Used:</strong> The Week 7 tutorial&rsquo;s cart model (position and speed with damping, made into 2 ms steps), with our own mass and damping values from the MuJoCo scene.</li>
+      </ul>
+
+      <h3 class="title is-4">Rank checks</h3>
+      <ul>
+        <li><strong>What it does:</strong> Checks that the motor can change in both angle and speed for the joints and position and speed for the rail. The observability checks both states can be figure out based upon the sensor, even though (as seen later) the speed is not measured directly.</li>
+        <li><strong>Results:</strong> Passed both the joints and rail.</li>
+        <li><strong>Content used:</strong> Week 5 tutorial (ctrb and obsv).</li>
+      </ul>
+
+
+      <!-- ===== SENSING (James) - drafted by Claude ===== -->
+      <h2 class="title is-3" id="sensing">Sensing - James</h2>
+      <p class="cw">[James: replace or extend this draft with your own explanation, the design choices you made, and how you tested it.]</p>
+
+      <h3 class="title is-4 cw">Camera calibration</h3>
+      <p class="cw">
+        The pinhole camera intrinsics K were found by rendering 14 checkerboard views at varied distance and tilt
+        in MuJoCo and calibrating with the Machine Vision Toolbox (<code>CameraCalibration.py</code>). The focal length is about 500 px.
+        Mean reprojection error: [value from your run] px.
+      </p>
+
+      <h3 class="title is-4 cw">Noise models</h3>
+      <table class="table is-fullwidth">
+        <thead><tr><th class="cw">Noise source</th><th class="cw">Model</th></tr></thead>
+        <tbody>
+          <tr><td class="cw">Pixel position</td><td class="cw">Gaussian, &sigma; = 1 px</td></tr>
+          <tr><td class="cw">Depth</td><td class="cw">&sigma;(Z) = 0.0015 + 0.0022 Z&sup2; m, growing with distance</td></tr>
+          <tr><td class="cw">Joint encoders</td><td class="cw">Gaussian, variance 1e-5 rad&sup2;</td></tr>
+          <tr><td class="cw">Rail encoder</td><td class="cw">Gaussian, &sigma; = 2 mm</td></tr>
+          <tr><td class="cw">Centroid bias</td><td class="cw">3 mm, added to the filter&rsquo;s R rather than averaged away</td></tr>
+        </tbody>
+      </table>
+      <p class="cw">
+        Depth noise grows with distance, so the PBVS target hovers 15 cm above the can,
+        where depth is more accurate and the can stays in view.
+      </p>
+
+      <h3 class="title is-4 cw">Frames: from pixel to the quantity the controller acts on</h3>
+      <ol class="cw">
         <li>Pixel (u, v) and depth Z from the wrist camera.</li>
         <li>Camera frame, computer-vision convention: P<sub>C</sub> = Z &middot; K<sup>-1</sup>[u, v, 1]<sup>T</sup>.</li>
         <li>Axis flip by [1, &minus;1, &minus;1] to the MuJoCo camera convention (camera looks along &minus;z).</li>
         <li>World frame: P<sub>W</sub> = p<sub>cam</sub> + R<sub>cam</sub> P<sub>C</sub>.</li>
         <li>Subtract the can height (0.135 m) to get the can base, which is the PBVS target.</li>
       </ol>
-      <p>The rail position shifts the robot base within the world frame, so the rail estimate affects the whole chain.</p>
-      <p><mark>[Optional: add a frame diagram image here.]</mark></p>
+      <p class="cw">The rail position shifts the robot base within the world frame, so the rail estimate affects the whole chain. [Optional: add a frame diagram image here.]</p>
 
-      <!-- Sensing -->
-      <h2 class="title is-3" id="sensing">3. Sensing and calibration</h2>
+
+      <!-- ===== ESTIMATION (Jack) - team text plus Claude additions ===== -->
+      <h2 class="title is-3" id="estimation">Estimation - Jack</h2>
+
+      <h3 class="title is-4">Can Kalman Filter</h3>
       <p>
-        The pinhole camera intrinsics K were found by rendering 14 checkerboard views at varied distance and tilt
-        in MuJoCo and calibrating with the Machine Vision Toolbox. The focal length is about 500 px.
-        Mean reprojection error: <mark>[value from your run] px</mark>.
+        <strong>What it does:</strong> takes the camera&rsquo;s x y z readings and combines 20 photos to estimate the can&rsquo;s position,
+        then keeps refining that estimate with new photos as the gripper approaches, since closer photos are more accurate.
       </p>
-      <table class="table is-striped is-fullwidth">
-        <thead><tr><th>Noise source</th><th>Model</th></tr></thead>
-        <tbody>
-          <tr><td>Pixel position</td><td>Gaussian, &sigma; = 1 px</td></tr>
-          <tr><td>Depth</td><td>&sigma;(Z) = 0.0015 + 0.0022 Z&sup2; m, growing with distance</td></tr>
-          <tr><td>Joint encoders</td><td>Gaussian, variance 1e-5 rad&sup2;</td></tr>
-          <tr><td>Rail encoder</td><td>Gaussian, &sigma; = 2 mm</td></tr>
-          <tr><td>Centroid bias</td><td>3 mm, added to the filter's R rather than averaged away</td></tr>
-        </tbody>
-      </table>
       <p>
-        Depth noise grows with distance, so the PBVS target hovers 15 cm above the can,
-        where depth is more accurate and the can stays in view.
+        <strong>How:</strong> it finds the center of the red pixels (u,v) and the depth (z). The inverse of the camera matrix lets you
+        work out where the point is relative to the camera, and the camera pose (estimated from the rail and joint content), works it
+        out as a xyz world point. Each photo predicts the movement of the can as it moves closer and then corrects itself depending on
+        how accurate the estimate was depending on the estimation.
+      </p>
+      <p>
+        <strong>Locations:</strong> Starts in the middle of the platform where the objects spawn, and is defined by being unsure by 20cm<sup>2</sup>,
+        the area in which the cans can spawn.
+      </p>
+      <p>
+        <strong>Camera noise function ( R ):</strong> Is the pixel noise (estimated to be 1 px, about 0.9 mm at 0.45 m, picked by us),
+        the depth noise (estimated to be 1.5 mm + 2.2 mm&middot;Z&sup2;, about 1.9 mm at 0.45 m, from the Week 4 depth camera model),
+        and the 3mm error (estimated from a test run where the filter finished 2.7 mm off, caused by the red-pixel centre not being
+        exactly the centre of the can top).
+      </p>
+      <p>
+        <strong>The doubt (Q):</strong> Is 2mm. This is because the can doesn&rsquo;t move, so Q could be 0, but then the filter would become
+        too sure and stop listening to new photos. A small Q keeps it updating (Week 7: when in doubt, make Q bigger).
+      </p>
+      <p>
+        <strong>Location in code:</strong> <mark class="cw">[add file and function names, e.g. can_kf_update() in MainRunFileMujoco.py]</mark>
+      </p>
+      <p>
+        <strong>Content Used:</strong> This part was based off of the Week 7 Kalman filter tutorial (kf_step), the Week 4 tutorial for turning
+        pixel + depth into 3D with K&#8315;&sup1;, and the Week 3 calibration for K.
+      </p>
+      <p class="cw">
+        <strong>Consistency check (NEES):</strong> for a 3-state filter the mean NEES should be near 3, and about 95% of trials should fall
+        below 7.815. Values above this mean the filter is over-confident (its covariance is too small). [Add your NEES result here.]
       </p>
 
-      <!-- Estimation -->
-      <h2 class="title is-3" id="estimation">4. Estimation</h2>
+      <h3 class="title is-4">Rail Kalman Filter</h3>
       <p>
-        <strong>Joint observer.</strong> A Luenberger-type observer runs a copy of the model and corrects it with the
-        encoder: x&#770;&#775; = A x&#770; + B u + L (y &minus; C x&#770;). The gain L is the steady-state Kalman gain from
-        <code>lqe</code> with process noise Q = diag(1e-3, 1) and measurement noise R = 1e-5.
+        <strong>Why?:</strong> We added this in after feedback because the Ur3 was basically fixed on the rail, which both made it so the
+        estimated states were the can position and joint speeds, and that the rail practically did nothing but just move the UR3 into a
+        single position. After we got feedback, we decided to make the rail a moving joint with a motor and a noisy encoder, so we added
+        this filter so that it drives up to the can using only an estimated position.
+      </p>
+      <p>
+        <strong>What it does:</strong> Takes the noisy rail encoder reading and estimates the base position and speed based off of that.
+        Speed is not measured, the filter works out how much the position changes and estimates it off that. The rail LQR then drives the
+        base to line up with the can using estimates.
+      </p>
+      <p>
+        <strong>Location in code:</strong> All main content is in make_rail_model() in RailEstimation.py. The filter works in
+        UR3_move_joints_lqr() in LQRPart.py, and uses kf_step() from RailEstimation.py.
+      </p>
+      <p>
+        <strong>Content Used:</strong> This part used the week 7 Kalman filter stuff (based off the cart model which was helpful since its
+        actually kind of similar in terms of movement in terms of kf_step) and the Week 6 LQR content (the part used in the rail controller).
+      </p>
+
+      <h3 class="title is-4 cw">Joint observer</h3>
+      <p class="cw">
+        Each joint runs a copy of its model and corrects it with the encoder: x&#770;&#775; = A x&#770; + B u + L (y &minus; C x&#770;).
+        The gain L is the steady-state Kalman gain from <code>lqe</code> with process noise Q = diag(1e-3, 1) and measurement noise R = 1e-5.
         Larger Q/R makes the estimate faster and noisier. Smaller Q/R makes it smoother and slower.
-        <mark>[State how you checked or tuned these values, e.g. the sweep in the results.]</mark>
+        [State how you checked or tuned these values, e.g. the sweep in the results.]
+      </p>
+
+      <h3 class="title is-4">What we found</h3>
+      <p>
+        <strong>Can Kalman Filter:</strong> The filter was really overconfident at the start, with it thinking that it was 0.65mm out when it was
+        3.6mm. After working out that the average of the photos stopped it from giving random noise errors but not accounting for steady
+        continuous errors, the 3mm was added to R, which matched up with the 2-3mm it was actually off by in the other runs.
       </p>
       <p>
-        <strong>Rail Kalman filter.</strong> Estimates rail position and velocity from the noisy encoder.
+        <strong>Can position is important:</strong> The error was bigger (around 6 to 8 mm more) when it was at the edge of the 20 pictures at the
+        start, probably because it shifted the red pixel center because it didn&rsquo;t get a flat down top view.
       </p>
       <p>
-        <strong>Can Kalman filter.</strong> The can is stationary, so the state is its 3D position with A = I, C = I.
-        Each photo is one noisy measurement. The filter starts at the centre of the spawn area with 0.2 m standard deviation,
-        uses a small process noise of 0.002 m, and builds R from the pixel noise converted to metres
-        (&sigma;<sub>xy</sub> = 1 px &times; Z/f), the depth noise at 0.45 m, and the 3 mm bias.
-        Consistency is checked with NEES: for a 3-state filter the mean should be near 3, and about 95% of trials should fall below 7.815.
-      </p>
-
-      <!-- Control -->
-      <h2 class="title is-3" id="control">5. Control</h2>
-      <p>
-        <strong>Joint LQR.</strong> Each joint uses u = &minus;K(x&#770; &minus; x<sub>ref</sub>) with weights
-        Q = diag(100, 1) and R = 1, which penalises angle error 100 times more than speed error.
-        Gains are computed per joint from its inertia. The controller uses the observer's estimate, not the true state.
-        <mark>[Paste the printed LQR gains here.]</mark>
+        <strong>Rail Kalman Filter:</strong> It averages a 0.8mm error but had a pretty accurate 98% range of result, so realistically it was pretty
+        accurate and honest with how sure it was about being accurate.
       </p>
       <p>
-        <strong>Gravity feed-forward.</strong> Gravity torque at the estimated pose is added to each command,
-        so LQR only corrects the remaining error.
-      </p>
-      <p>
-        <strong>Rail.</strong> A discrete LQR with weights diag(1000, 1) and R = 0.01 acts on the Kalman estimate,
-        with force clipped at &plusmn;200 N.
-      </p>
-      <p>
-        <strong>PBVS.</strong> The error is the gripper position error to a point 15 cm above the estimated can,
-        plus a tilt error that keeps the gripper pointing down. Joint velocities are q&#775; = J<sup>+</sup> &lambda; e with
-        &lambda; = 2, applied for 0.2 s per step, repeating with a fresh photo each step until the error is below 2 mm.
-        Limits: motor torque limits, noise passing through the observer, and ignored joint coupling.
+        <strong>Disturbance:</strong> We added a 5N push when it approached the can. Every time the robot recovered and still worked out where the can
+        was and placed it. Within about 5mm accuracy.
       </p>
 
-    </div>
-  </div>
-</section>
+
+      <!-- ===== CONTROL (Will) - drafted by Claude ===== -->
+      <h2 class="title is-3" id="control">Control - Will</h2>
+      <p class="cw">[Will: replace or extend this draft with your own explanation, your tuning process and your results.]</p>
+
+      <h3 class="title is-4 cw">Joint LQR</h3>
+      <p class="cw">
+        Each joint uses u = &minus;K(x&#770; &minus; x<sub>ref</sub>) with weights Q = diag(100, 1) and R = 1, which penalises angle error
+        100 times more than speed error. Gains are computed per joint from its inertia. For this model the angle gain works out to
+        &radic;(Q<sub>11</sub>/R) = 10 for every joint, while the speed gain depends on the joint inertia. The controller uses the observer&rsquo;s
+        estimate, not the true state. [Paste the printed LQR gains here and check the first column is 10.]
+      </p>
+
+      <h3 class="title is-4 cw">Gravity feed-forward</h3>
+      <p class="cw">
+        The model has no gravity term, so the gravity torque at the estimated pose is added to each command and LQR only corrects the
+        remaining error.
+      </p>
+
+      <h3 class="title is-4 cw">Rail control</h3>
+      <p class="cw">
+        A discrete LQR with weights diag(1000, 1) and R = 0.01 acts on the Kalman estimate, with force clipped at &plusmn;200 N.
+      </p>
+
+      <h3 class="title is-4 cw">PBVS</h3>
+      <p class="cw">
+        The error is the gripper position error to a point 15 cm above the estimated can, plus a tilt error that keeps the gripper pointing
+        down. Joint velocities are q&#775; = J<sup>+</sup> &lambda; e with &lambda; = 2, applied for 0.2 s per step, repeating with a fresh photo each
+        step until the error is below 2 mm. Limits on the gains: motor torque limits, noise passing through the observer, and ignored joint coupling.
+        [Add how &lambda; and the LQR weights were chosen.]
+      </p>
 
 
-<!-- ===== RESULTS ===== -->
-<section class="section">
-  <div class="container is-max-desktop">
-    <h2 class="title is-3">Results</h2>
-    <p class="content">
-      <mark>[Replace the placeholders below with your graphs from the <code>figures/</code> folder.
-      Copy them to <code>static/images/results/</code> and update each filename.]</mark>
-    </p>
+      <!-- ===== RESULTS (Banjo) - placeholders by Claude ===== -->
+      <h2 class="title is-3" id="results">Results - Banjo</h2>
+      <p class="cw">
+        [Banjo: replace the placeholders below with your graphs from the figures/ folder. Copy them to static/images/results/ and update each filename.]
+      </p>
 
-    <div class="columns is-centered">
-      <div class="column content">
-        <h3 class="title is-4">Can position estimation</h3>
-        <p>
-          Estimate error against the &plusmn;2&sigma; uncertainty band, and NEES per trial against the 3 and 7.815 reference lines.
-        </p>
-        <img src="./static/images/results/nees.png" class="teaser-image" alt="Can position estimate and NEES consistency."/>
-      </div>
-      <div class="column content">
-        <h3 class="title is-4">Joint control</h3>
-        <p>
-          Tracking error and torque as a percentage of motor limits, and the effect of the LQR weight Q on effort against accuracy.
-        </p>
-        <img src="./static/images/results/joint_control.png" class="teaser-image" alt="Joint tracking error and torque usage."/>
-      </div>
-    </div>
-
-    <table class="table is-striped is-fullwidth">
-      <thead><tr><th>Metric</th><th>Result over <mark>[N]</mark> randomised trials</th></tr></thead>
-      <tbody>
-        <tr><td>Can position error after filtering (mm)</td><td><mark>[ ]</mark></td></tr>
-        <tr><td>Mean NEES (target about 3)</td><td><mark>[ ]</mark></td></tr>
-        <tr><td>PBVS convergence (photos to reach 2 mm)</td><td><mark>[ ]</mark></td></tr>
-        <tr><td>Grasp success rate</td><td><mark>[ ]</mark></td></tr>
-        <tr><td>Place error (mm)</td><td><mark>[ ]</mark></td></tr>
-      </tbody>
-    </table>
-
-    <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3">Results discussion and reflection</h2>
-        <div class="content has-text-justified">
-          <p>
-            <mark>[Explain why the results look as they do: what drives the can estimate error,
-            where the observer lags, how tracking error trades against torque, and which failures you saw and traced.]</mark>
-          </p>
-          <p><strong>Limitations.</strong></p>
-          <ul>
-            <li>Joint coupling is ignored and inertia is held constant at one pose.</li>
-            <li>Noise values are injected by us, so robustness is to our noise models rather than real sensor behaviour.</li>
-            <li>Some simulator poses (camera pose, gripper pose and Jacobian) are used by the visual-servo kinematics instead of values computed from the estimates. <mark>[Confirm or change this once you have decided how to handle it.]</mark></li>
-            <li>If the can leaves the image, no measurement is available and the code does not yet skip the update.</li>
-            <li>Simulation only. <mark>[Update if you completed any hardware work.]</mark></li>
-          </ul>
+      <div class="columns is-centered">
+        <div class="column content">
+          <h3 class="title is-4 cw">Can position estimation</h3>
+          <p class="cw">Estimate error against the &plusmn;2&sigma; uncertainty band, and NEES per trial against the 3 and 7.815 reference lines.</p>
+          <img src="./static/images/results/nees.png" class="teaser-image" alt="Can position estimate and NEES consistency."/>
+        </div>
+        <div class="column content">
+          <h3 class="title is-4 cw">Joint control</h3>
+          <p class="cw">Tracking error and torque as a percentage of motor limits, and the effect of the LQR weight Q on effort against accuracy.</p>
+          <img src="./static/images/results/joint_control.png" class="teaser-image" alt="Joint tracking error and torque usage."/>
         </div>
       </div>
-    </div>
-  </div>
-</section>
+
+      <table class="table is-fullwidth">
+        <thead><tr><th class="cw">Metric</th><th class="cw">Result over [N] randomised trials</th></tr></thead>
+        <tbody>
+          <tr><td class="cw">Can position error after filtering (mm)</td><td class="cw">[ ]</td></tr>
+          <tr><td class="cw">Mean NEES (target about 3)</td><td class="cw">[ ]</td></tr>
+          <tr><td class="cw">PBVS convergence (photos to reach 2 mm)</td><td class="cw">[ ]</td></tr>
+          <tr><td class="cw">Grasp success rate</td><td class="cw">[ ]</td></tr>
+          <tr><td class="cw">Place error (mm)</td><td class="cw">[ ]</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="title is-4 cw">Results discussion and reflection</h3>
+      <p class="cw">
+        [Explain why the results look as they do: what drives the can estimate error, where the observer lags, how tracking error
+        trades against torque, and which failures you saw and traced.]
+      </p>
+      <p class="cw"><strong>Limitations.</strong></p>
+      <ul>
+        <li class="cw">Joint coupling is ignored and inertia is held constant at one pose.</li>
+        <li class="cw">Noise values are injected by us, so robustness is to our noise models rather than real sensor behaviour.</li>
+        <li class="cw">[Check the current code: if the visual-servo kinematics (camera pose, gripper pose, Jacobian) still read true poses from the simulator rather than values computed from the estimates, state that here. Delete this bullet if it no longer applies.]</li>
+        <li class="cw">If the can leaves the image, no measurement is available and the code does not yet skip the update. [Confirm against current code.]</li>
+        <li class="cw">Simulation only. [Update if you completed any hardware work.]</li>
+      </ul>
 
 
-<!-- ===== INSTALL AND RUN ===== -->
-<section class="section">
-  <div class="container is-max-desktop content">
-    <h2 class="title is-3">Install and run</h2>
-    <pre><code>git clone https://github.com/WRicho/BartendingRobotSensors.git
+      <!-- ===== HOW TO RUN (team) ===== -->
+      <h2 class="title is-3" id="run">How to Run</h2>
+      <pre><code>git clone https://github.com/Hefferss/BartendingRobotSensors
 cd BartendingRobotSensors
+
 python -m venv .venv
-.venv\Scripts\activate          # Windows
-pip install -r requirements.txt
+.venv\Scripts\activate
+pip install mujoco numpy control matplotlib
 
-python MainRunFileMujoco.py     # runs one randomised pick-and-place trial
-python graphs.py                # regenerates the figures from saved results</code></pre>
-    <p>
-      Expected behaviour: a MuJoCo viewer opens and a camera window shows the detected can.
-      Press Enter at the prompt, and the robot looks, estimates the can position, aligns on the rail,
-      servos above the can, grasps it, and places it on the blue plate.
-      Simulator ground truth is used only for evaluation and printed error values.
-    </p>
-    <p><mark>[Check that requirements.txt is in the repo and lists numpy, mujoco, matplotlib, control, opencv-python and machinevision-toolbox-python.]</mark></p>
-  </div>
-</section>
+python MainRunFileMujoco.py</code></pre>
+      <p>Use push_on = True in MainRunFileMujoco.py to simulate a 5N push.</p>
+      <p class="cw">
+        Expected behaviour: a MuJoCo viewer opens and a camera window shows the detected can. Press Enter at the prompt, and the robot looks,
+        estimates the can position, aligns on the rail, servos above the can, grasps it, and places it on the blue plate.
+        To run CameraCalibration.py you also need opencv-python and machinevision-toolbox-python. graphs.py regenerates the figures from saved results.
+      </p>
 
 
-<!-- ===== AI DECLARATION AND REFERENCES ===== -->
-<section class="section" id="declaration">
-  <div class="container is-max-desktop content">
-    <h2 class="title is-3">Generative AI declaration</h2>
-    <p>
-      <mark>[State each tool used and what it was used for, for example: "Claude (Anthropic) was used to explain
-      concepts for the viva and to help draft this project page. All design choices, parameter values and results come from our own code and runs."
-      Edit this to be accurate for your team.]</mark>
-    </p>
+      <!-- ===== CONTRIBUTION (team, gaps by Claude) ===== -->
+      <h2 class="title is-3" id="contribution">Contribution</h2>
+      <table class="table is-fullwidth">
+        <thead><tr><th>Individual</th><th>Contribution</th></tr></thead>
+        <tbody>
+          <tr><td>Jack</td><td>Estimation Content, Modelling Content, and small parts of other sections</td></tr>
+          <tr><td>Will</td><td>Control content <mark class="cw">[add specifics: files, functions, what you tuned]</mark></td></tr>
+          <tr><td>Banjo</td><td>Results content <mark class="cw">[add specifics]</mark></td></tr>
+          <tr><td>James</td><td>Sensing content <mark class="cw">[add specifics]</mark></td></tr>
+        </tbody>
+      </table>
 
-    <h2 class="title is-3">References and acknowledgements</h2>
-    <ul>
-      <li>Weekly 41014 tutorial code, adapted for this platform.</li>
-      <li>MuJoCo documentation and MuJoCo Menagerie models (UR3e, RealSense D435i).</li>
-      <li>Robotics Toolbox and Machine Vision Toolbox (Peter Corke) for camera calibration.</li>
-      <li>python-control library for LQR and Kalman gain design.</li>
-      <li><mark>[Add anything listed in your WhereIGotCodeFrom file.]</mark></li>
-    </ul>
+
+      <!-- ===== GEN AI (team, addition by Claude) ===== -->
+      <h2 class="title is-3" id="declaration">Gen AI declaration</h2>
+      <p>
+        As a group, we used AI to understand earlier weeks content in order to gain a strong basis for modeling content for this progress.
+        We used it throughout the course to understand this tutorial content, and learning how to do small parts like importing stl files
+        into Mujoco or very minor bug fixing. We made sure that we didn&rsquo;t allow AI to write the code for us, instead using it as a guide
+        in understanding the content.
+      </p>
+      <p class="cw">
+        [Suggested addition, confirm or edit so it is accurate: AI (Claude, by Anthropic) was also used to explain the code and theory for
+        the viva, and to help draft and structure this project page. Highlighted passages on this page were drafted with AI assistance
+        and must be checked and rewritten by the team member responsible.]
+      </p>
+
+
+      <!-- ===== ACKNOWLEDGEMENTS (team, additions by Claude) ===== -->
+      <h2 class="title is-3" id="acknowledgements">Acknowledgements</h2>
+      <ul>
+        <li>41014 weekly tutorials</li>
+        <li>Raphael&rsquo;s MujoCo UR3 tutorial</li>
+        <li>Online MujoCo documentation</li>
+        <li>Libraries: MuJoCo, NumPy, python-control, Machine Vision Toolbox, OpenCV, Matplotlib.</li>
+        <li>Earlier Bartending Industrial Robotics work, which we utilized some of the STL&rsquo;s of to make this project possible.</li>
+        <li>RealSense D435i Camera</li>
+        <li class="cw">[Add anything from your WhereIGotCodeFrom file, and the MuJoCo Menagerie UR3e model if you used it.]</li>
+      </ul>
+
+    </div>
   </div>
 </section>
 
@@ -392,7 +477,7 @@ python graphs.py                # regenerates the figures from saved results</co
                                                 href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
             Commons Attribution-ShareAlike 4.0 International License</a>.
           </p>
-          <p>
+          <p class="cw">
             Page template adapted from the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>
             project page, via the
             <a href="https://rfalque.github.io/41118_project-sample/">41118 sample portfolio</a>.
