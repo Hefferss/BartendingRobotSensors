@@ -34,14 +34,15 @@
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">Vision-Guided Pick and Place with a UR3e on a Rail</h1>
+          <h1 class="title is-1 publication-title">Bartending Robots - Vision-Guided UR3</h1>
           <div class="is-size-5 publication-authors">
             <span class="author-block">William Richardson,</span>
             <span class="author-block">Jack Heffernan,</span>
             <span class="author-block">James Witcombe</span>
+            <span class="author-block">Banjo Taylor</span>
           </div>
           <div class="is-size-5 publication-authors">
-            <span class="author-block">Group <mark>[GROUP NUMBER]</mark> &middot; University of Technology Sydney</span>
+            <span class="author-block">Group 14 &middot; University of Technology Sydney</span>
           </div>
           <div class="is-size-5 publication-authors">
             <span class="author-block">41014 Sensors and Control in Mechatronic Systems &middot; Assessment 4: Integrated Project</span>
@@ -87,9 +88,8 @@
            class="teaser-image"
            alt="System pipeline: sensors feed estimators, estimators feed controllers, controllers drive the UR3e on a rail."/>
       <h2 class="subtitle has-text-centered">
-        A UR3e on a linear rail finds a randomly placed can with a wrist RGB-D camera.
-        Kalman filters and an observer turn noisy measurements into state estimates,
-        and every controller acts on those estimates only.
+        Our system uses a UR3 robot arm on a linear rail, using Mujoco to simulate it finding a randomly placed can on a mounted RGB-D camera, picking it up and placing it on a target plate. The camera reading from the RGB-D camera is turned into a 3D position, then cleaned up using Kalma n filters, and used to give information to the rail and arm with LAR controllers and position-based visual servoing. The controllers use estimation states and never ground truth, which is only added for testing purposes. 
+        This project page is split into four main parts (Sensing, Estimation, Control and Results), with each team member leading the content for one part. Each part explains how that component works in our system, the design choices behind them, and how we iterated on and tested them. 
       </h2>
     </div>
   </div>
