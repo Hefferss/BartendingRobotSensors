@@ -115,24 +115,28 @@
             onerror="this.onerror=null;this.src='./static/images/team/will_placeholder.svg';"
             class="teaser-image"
             alt="William Richardson."/>
+          <p class="has-text-centered is-size-4 has-text-weight-semibold" style="margin-top: 0.75rem;">William Richardson</p>
         </div>
         <div class="item item-chair-tp">
           <img src="./static/images/team/jack.jpg"
             onerror="this.onerror=null;this.src='./static/images/team/jack_placeholder.svg';"
             class="teaser-image"
             alt="Jack Heffernan."/>
+          <p class="has-text-centered is-size-4 has-text-weight-semibold" style="margin-top: 0.75rem;">Jack Heffernan</p>
         </div>
         <div class="item item-fullbody">
           <img src="./static/images/team/james.jpg"
             onerror="this.onerror=null;this.src='./static/images/team/james_placeholder.svg';"
             class="teaser-image"
             alt="James Witcombe."/>
+          <p class="has-text-centered is-size-4 has-text-weight-semibold" style="margin-top: 0.75rem;">James Witcombe</p>
         </div>
         <div class="item item-shiba">
           <img src="./static/images/team/banjo.jpg"
             onerror="this.onerror=null;this.src='./static/images/team/banjo_placeholder.svg';"
             class="teaser-image"
             alt="Banjo Taylor."/>
+          <p class="has-text-centered is-size-4 has-text-weight-semibold" style="margin-top: 0.75rem;">Banjo Taylor</p>
         </div>
       </div>
     </div>
@@ -145,18 +149,13 @@
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
-        <h2 class="title is-3 cw">Abstract</h2>
+        <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
-          <p class="cw">
-            We present a vision-guided pick-and-place system for a UR3 arm mounted on a linear rail,
-            simulated in MuJoCo. This is our own project, close in scope to Track B. A wrist-mounted RGB-D camera,
-            calibrated from checkerboard views, measures the pixel position and depth of a randomly placed can.
-            A Kalman filter fuses repeated measurements into a 3D position estimate with quantified uncertainty.
-            Joint torques come from per-joint LQR controllers driven by observer estimates of angle and speed,
-            with gravity feed-forward, while the rail has its own Kalman filter and discrete LQR.
-            Position-based visual servoing (PBVS) brings the gripper above the can before it is grasped and
-            placed on a target plate. We evaluate [N] randomised trials and report estimation
-            consistency, tracking error, control effort and placement accuracy.
+          <p>
+            Our system uses a UR3 robot arm on a linear rail, using Mujoco to simulate it finding a randomly placed can on a mounted RGB-D camera, picking it up and placing it on a target plate. The camera reading from the RGB-D camera is turned into a 3D position, then cleaned up using Kalman filters, and used to give information to the rail and arm with LQR controllers and position-based visual servoing. The controllers use estimation states and never ground truth, which is only added for testing purposes.
+          </p>
+          <p>
+            This project page is split into four main parts (Sensing, Estimation, Control and Results), with each team member leading the content for one part. Each part explains how that component works in our system, the design choices behind them, and how we iterated on and tested them.
           </p>
         </div>
       </div>
@@ -164,7 +163,7 @@
 
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
-        <h2 id="video" class="title is-3 cw">Demo video (5 minutes)</h2>
+        <h2 id="video" class="title is-3 cw">Demo Video</h2>
         <div class="publication-video">
           <!-- Replace VIDEO_ID with your YouTube video ID (upload as Unlisted). -->
           <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0&amp;showinfo=0"
