@@ -94,8 +94,8 @@
            class="teaser-image"
            alt="System pipeline: sensors feed estimators, estimators feed controllers, controllers drive the UR3 on a rail."/>
       <h2 class="subtitle has-text-centered">
-        Our system uses a UR3 robot arm on a linear rail, using Mujoco to simulate it finding a randomly placed can on a mounted RGB-D camera, picking it up and placing it on a target plate. The camera reading from the RGB-D camera is turned into a 3D position, then cleaned up using Kalman filters, and used to give information to the rail and arm with LQR controllers and position-based visual servoing. The controllers use estimation states and never ground truth, which is only added for testing purposes.
-        This project page is split into four main parts (Sensing, Estimation, Control and Results), with each team member leading the content for one part. Each part explains how that component works in our system, the design choices behind them, and how we iterated on and tested them.
+        Description Go Here IDK WHY BUT THIS HAT TO BE THIS LONG FOR IMAGE TO SCALE CORRECTYL??? IDK WHY
+       
       </h2>
     </div>
   </div>
@@ -163,7 +163,7 @@
 
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
-        <h2 id="video" class="title is-3 cw">Demo Video</h2>
+        <h2 id="video" class="title is-3">Demo Video</h2>
         <div class="publication-video">
           <!-- Replace VIDEO_ID with your YouTube video ID (upload as Unlisted). -->
           <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0&amp;showinfo=0"
@@ -443,20 +443,51 @@
 
       <!-- ===== HOW TO RUN (team) ===== -->
       <h2 class="title is-3" id="run">How to Run</h2>
-      <pre><code>git clone https://github.com/Hefferss/BartendingRobotSensors
-cd BartendingRobotSensors
+      <p class="cw">These steps assume Windows with PowerShell, as used in our setup. You need Git and Python installed first.</p>
+      <ol>
+        <li>
+          <strong>Download:</strong>
+<pre><code>git clone https://github.com/Hefferss/BartendingRobotSensors
+cd BartendingRobotSensors</code></pre>
+          <span class="cw">If you don&rsquo;t use Git, click Code, then Download ZIP on the GitHub page, unzip it, and open a terminal in that folder. Run every later command from inside the project folder.</span>
+        </li>
+        <li>
+          <strong>Set up Python (if you haven&rsquo;t already):</strong>
+<pre><code>python -m venv .venv
+.venv\Scripts\activate</code></pre>
+          <span class="cw">The first line creates a private environment for the project&rsquo;s packages and the second switches it on. You should see (.venv) at the start of the terminal line. If PowerShell refuses to run the activate script, run <code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned</code> and then activate again.</span>
+        </li>
+        <li>
+          <strong>Install the packages:</strong>
+<pre><code>pip install mujoco numpy control matplotlib</code></pre>
+          <span class="cw">Do this with the environment active. If a later run stops with <code>ModuleNotFoundError: No module named 'x'</code>, install that package with <code>pip install x</code>.</span>
+        </li>
+        <li>
+          <strong>Run the demo</strong> by playing <code>MainRunFileMujoco.py</code>:
+<pre><code>python MainRunFileMujoco.py</code></pre>
+          <span class="cw">You can also open the file in VS Code and press the play button, as long as the selected Python interpreter is the .venv one.</span>
+        </li>
+        <li>
+          <strong>Simulate a disturbance:</strong> use <code>push_on = True</code> in <code>MainRunFileMujoco.py</code> to simulate a 5N push.
+          <span class="cw">Open the file, set <code>push_on</code> to <code>True</code>, save, and run it again. Set it back to <code>False</code> for a normal run.</span>
+        </li>
+      </ol>
 
-python -m venv .venv
-.venv\Scripts\activate
-pip install mujoco numpy control matplotlib
+      <h3 class="title is-4 cw">What you should see</h3>
+      <ol class="cw">
+        <li>A MuJoCo viewer opens with the UR3 on its rail and a randomly placed can, and a separate window shows the camera image. If the terminal waits for input, press Enter to continue.</li>
+        <li>The arm moves to its look pose and takes 20 photos. The terminal prints the Kalman filter&rsquo;s can estimate, its uncertainty and the error against the true position.</li>
+        <li>The base slides along the rail to line up with the can, then the gripper steps down in small moves until it is 0.15 m above the can, updating the estimate after every photo.</li>
+        <li>The arm grasps and lifts the can, swings it over the rail and places it on the blue plate.</li>
+        <li>The viewer stays open at the end. Close it to finish the run, after which the rail estimate plot appears.</li>
+      </ol>
 
-python MainRunFileMujoco.py</code></pre>
-      <p>Use push_on = True in MainRunFileMujoco.py to simulate a 5N push.</p>
+      <h3 class="title is-4 cw">Optional scripts</h3>
       <p class="cw">
-        Expected behaviour: a MuJoCo viewer opens and a camera window shows the detected can. Press Enter at the prompt, and the robot looks,
-        estimates the can position, aligns on the rail, servos above the can, grasps it, and places it on the blue plate.
-        To run CameraCalibration.py you also need opencv-python and machinevision-toolbox-python. graphs.py regenerates the figures from saved results.
+        <code>CameraCalibration.py</code> needs two more packages (<code>pip install opencv-python machinevision-toolbox-python</code>) and reproduces the camera calibration.
+        <code>graphs.py</code> regenerates the result figures from the saved files in the results folder.
       </p>
+      <p class="cw">[Add the Python version you used and any other setup notes, such as whether RailEstimation.py needs to sit in the same folder as the other scripts.]</p>
 
 
       <!-- ===== CONTRIBUTION (team, gaps by Claude) ===== -->
@@ -479,11 +510,6 @@ python MainRunFileMujoco.py</code></pre>
         We used it throughout the course to understand this tutorial content, and learning how to do small parts like importing stl files
         into Mujoco or very minor bug fixing. We made sure that we didn&rsquo;t allow AI to write the code for us, instead using it as a guide
         in understanding the content.
-      </p>
-      <p class="cw">
-        [Suggested addition, confirm or edit so it is accurate: AI (Claude, by Anthropic) was also used to explain the code and theory for
-        the viva, and to help draft and structure this project page. Highlighted passages on this page were drafted with AI assistance
-        and must be checked and rewritten by the team member responsible.]
       </p>
 
 
