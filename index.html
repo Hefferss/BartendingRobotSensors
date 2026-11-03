@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="description"
-        content="Sample portfolio for 41118 AI in robotics class at UTS.">
-  <meta name="keywords" content="41118">
+        content="Sensing, estimation and control for vision-guided pick and place with a UR3e on a rail in MuJoCo. 41014 Sensors and Control in Mechatronic Systems, UTS.">
+  <meta name="keywords" content="41014, UR3e, MuJoCo, Kalman filter, LQR, PBVS, visual servoing">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>41118 Portfolio sample</title>
+  <title>Vision-Guided Pick and Place with a UR3e on a Rail</title>
 
   <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
         rel="stylesheet">
@@ -28,78 +28,49 @@
 </head>
 <body>
 
+<!-- ===== TITLE, TEAM, LINKS ===== -->
 <section class="hero">
   <div class="hero-body">
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">41118 Portfolio sample</h1>
+          <h1 class="title is-1 publication-title">Vision-Guided Pick and Place with a UR3e on a Rail</h1>
           <div class="is-size-5 publication-authors">
-            <span class="author-block">
-              <a href="https://profiles.uts.edu.au/Raphael.Falque">Raphael Falque</a><sup>1</sup>,
-            </span>
-            <span class="author-block">
-              <a href="#">John Doe</a><sup>2</sup>
-            </span>
+            <span class="author-block">William Richardson,</span>
+            <span class="author-block">Jack Heffernan,</span>
+            <span class="author-block">James Witcombe</span>
           </div>
-
           <div class="is-size-5 publication-authors">
-            <span class="author-block"><sup>1</sup>University Technology Sydney,</span>
-            <span class="author-block"><sup>2</sup>Other institute</span>
+            <span class="author-block">Group <mark>[GROUP NUMBER]</mark> &middot; University of Technology Sydney</span>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">41014 Sensors and Control in Mechatronic Systems &middot; Assessment 4: Integrated Project</span>
           </div>
 
           <div class="column has-text-centered">
             <div class="publication-links">
-              <!-- PDF Link. 
-              <span class="link-block">
-                <a href="https://arxiv.org/pdf/2011.12948"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fas fa-file-pdf"></i>
-                  </span>
-                  <span>Paper</span>
-                </a>
-              </span>
-              <span class="link-block">
-                <a href="https://arxiv.org/abs/2011.12948"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="ai ai-arxiv"></i>
-                  </span>
-                  <span>arXiv</span>
-                </a>
-              </span>-->
-              <!-- Video Link. -->
               <span class="link-block">
                 <a href="#video"
                    class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-youtube"></i>
-                  </span>
+                  <span class="icon"><i class="fab fa-youtube"></i></span>
                   <span>Video</span>
                 </a>
               </span>
-              <!-- Code Link. -->
               <span class="link-block">
-                <a href="https://github.com/rFalque/41118_project-sample"
+                <a href="https://github.com/WRicho/BartendingRobotSensors"
                    class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-github"></i>
-                  </span>
+                  <span class="icon"><i class="fab fa-github"></i></span>
                   <span>Code</span>
-                  </a>
+                </a>
               </span>
-              <!-- Dataset Link. -->
               <span class="link-block">
-                <a href="https://github.com/rFalque/41118_project-sample/tree/main/data_sample"
+                <a href="https://github.com/WRicho/BartendingRobotSensors/tree/main/results"
                    class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="far fa-images"></i>
-                  </span>
+                  <span class="icon"><i class="far fa-images"></i></span>
                   <span>Data</span>
-                  </a>
+                </a>
+              </span>
             </div>
-
           </div>
         </div>
       </div>
@@ -108,54 +79,46 @@
 </section>
 
 
+<!-- ===== TEASER ===== -->
 <section class="hero teaser">
   <div class="container is-max-desktop">
     <div class="hero-body">
-      <img src="./static/images/teaser.png"
-            class="teaser-image"
-            alt="Teaser."/>
+      <img src="./static/images/pipeline.svg"
+           class="teaser-image"
+           alt="System pipeline: sensors feed estimators, estimators feed controllers, controllers drive the UR3e on a rail."/>
       <h2 class="subtitle has-text-centered">
-        <span class="dnerf">41118 Portfolio teaser</span> sample of teaser image for your project. Note that this image is AI generated and does not reflect any flowchart of an actual framework. However, this text would be a great place to give a quick summary of your own flowchart.
+        A UR3e on a linear rail finds a randomly placed can with a wrist RGB-D camera.
+        Kalman filters and an observer turn noisy measurements into state estimates,
+        and every controller acts on those estimates only.
       </h2>
     </div>
   </div>
 </section>
 
 
+<!-- ===== TEAM AND CONTRIBUTIONS ===== -->
 <section class="hero is-light is-small">
   <div class="hero-body">
-    <div class="container">
-      <h2 class="title is-3">Team members</h2>
-      <div id="results-carousel" class="carousel results-carousel">
-        <div class="item">
-          <img src="./static/images/staff/Raphael_Falque.jpg"
-            class="teaser-image"
-            alt="Teaser."/>
+    <div class="container is-max-desktop">
+      <h2 class="title is-3 has-text-centered">Team and individual contributions</h2>
+      <div class="columns">
+        <div class="column">
+          <div class="box">
+            <p class="title is-5">William Richardson</p>
+            <p><mark>[Role and specific contribution, e.g. which Part (A to E) and which code files.]</mark></p>
+          </div>
         </div>
-        <div class="item item-chair-tp">
-          <img src="./static/images/staff/Lan_Wu.jpeg"
-            class="teaser-image"
-            alt="Teaser."/>
+        <div class="column">
+          <div class="box">
+            <p class="title is-5">Jack Heffernan</p>
+            <p><mark>[Role and specific contribution.]</mark></p>
+          </div>
         </div>
-        <div class="item item-fullbody">
-          <img src="./static/images/staff/Hugh_Byun.jpeg"
-            class="teaser-image"
-            alt="Teaser."/>
-        </div>
-        <div class="item item-shiba">
-          <img src="./static/images/staff/Dominik_Slomma.jpeg"
-            class="teaser-image"
-            alt="Teaser."/>
-        </div>
-        <div class="item item-blueshirt">
-          <img src="./static/images/staff/Augustine_Le.jpeg"
-            class="teaser-image"
-            alt="Teaser."/>
-        </div>
-        <div class="item item-mask">
-          <img src="./static/images/staff/Resul_Dagdanov.jpeg"
-            class="teaser-image"
-            alt="Teaser."/>
+        <div class="column">
+          <div class="box">
+            <p class="title is-5">James Witcombe</p>
+            <p><mark>[Role and specific contribution.]</mark></p>
+          </div>
         </div>
       </div>
     </div>
@@ -163,160 +126,276 @@
 </section>
 
 
+<!-- ===== ABSTRACT AND VIDEO ===== -->
 <section class="section">
   <div class="container is-max-desktop">
-    <!-- Abstract. -->
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
         <h2 class="title is-3">Abstract</h2>
         <div class="content has-text-justified">
           <p>
-            Description of the project. This is a sample text to show how the abstract would look like in your own project. You can use this space to describe the main idea of your project, the methods used, and the results obtained.
-          </p>
-          <p>
-            Orem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </p>
-          <p>
-            The video below explain how to set up your portfolio.
+            We present a vision-guided pick-and-place system for a UR3e arm mounted on a linear rail,
+            simulated in MuJoCo. This is our own project, close in scope to Track B. A wrist-mounted RGB-D camera,
+            calibrated from checkerboard views, measures the pixel position and depth of a randomly placed can.
+            A Kalman filter fuses repeated measurements into a 3D position estimate with quantified uncertainty.
+            Joint torques come from per-joint LQR controllers driven by observer estimates of angle and speed,
+            with gravity feed-forward, while the rail has its own Kalman filter and discrete LQR.
+            Position-based visual servoing (PBVS) brings the gripper above the can before it is grasped and
+            placed on a target plate. We evaluate <mark>[N]</mark> randomised trials and report estimation
+            consistency, tracking error, control effort and placement accuracy.
           </p>
         </div>
       </div>
     </div>
-    <!--/ Abstract. -->
 
-    <!-- Paper video. -->
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
-        <h2 id="video" class="title is-3">Video</h2>
-        <!-- 
-        <p>
-          As a youtube link:
-        </p>
+        <h2 id="video" class="title is-3">Demo video (5 minutes)</h2>
         <div class="publication-video">
-          <iframe src="https://www.youtube.com/embed/MrKrnHhk8IA?rel=0&amp;showinfo=0"
+          <!-- Replace VIDEO_ID with your YouTube video ID (upload as Unlisted). -->
+          <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0&amp;showinfo=0"
                   frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
-        -->
-        <p>
-          Directly embedded video:
+        <p class="is-size-6">
+          The video shows the completed task, a varied or disturbed trial, and the estimate with its
+          uncertainty alongside the true state.
         </p>
-        <div class="content has-text-centered">
-          <video id="replay-video"
-                  controls
-                  preload
-                  playsinline
-                  width="100%">
-            <source src="./static/videos/portfolio_instructions.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
       </div>
     </div>
-    <!--/ Paper video. -->
-    
   </div>
 </section>
 
 
+<!-- ===== TECHNICAL SECTIONS ===== -->
 <section class="section">
   <div class="container is-max-desktop">
+    <div class="content has-text-justified">
+
+      <!-- Modelling -->
+      <h2 class="title is-3" id="modelling">1. Modelling</h2>
+      <p>
+        <strong>Joints.</strong> Each of the six arm joints is modelled as a rotating inertia with state
+        x = [&theta;, &theta;&#775;] and torque input &tau;. With friction set to zero, the model is a double integrator:
+        &theta;&#776; = (k/J)&tau;, so A = [[0, 1], [0, 0]], B = [0; k/J], C = [1, 0].
+        The inertia J of each joint is read from the UR3e mass matrix in MuJoCo (diagonal entries at the zero pose), and k = 1.
+      </p>
+      <p>
+        <strong>Controllability and observability.</strong> Both matrices have rank 2 for every joint, so the full
+        state can be driven by torque and reconstructed from the angle measurement alone.
+        Speed is not measured directly. It is observable because it is the rate of change of the measured angle.
+      </p>
+      <p>
+        <strong>Rail.</strong> The base slides on a prismatic joint with damping 100 and force limit &plusmn;200 N.
+        The model is a discrete position and velocity system (stepped at 2 ms) with position measured by an encoder.
+      </p>
+      <p>
+        <strong>Assumptions.</strong> Joints are treated as independent (coupling between joints is ignored),
+        inertia is constant (taken at one pose), and gravity is handled by feed-forward rather than in the model.
+        Remaining coupling acts as a disturbance that feedback must reject.
+      </p>
+
+      <!-- Frames -->
+      <h2 class="title is-3" id="frames">2. Frames</h2>
+      <p>The chain from sensor to the quantity the controller acts on:</p>
+      <ol>
+        <li>Pixel (u, v) and depth Z from the wrist camera.</li>
+        <li>Camera frame, computer-vision convention: P<sub>C</sub> = Z &middot; K<sup>-1</sup>[u, v, 1]<sup>T</sup>.</li>
+        <li>Axis flip by [1, &minus;1, &minus;1] to the MuJoCo camera convention (camera looks along &minus;z).</li>
+        <li>World frame: P<sub>W</sub> = p<sub>cam</sub> + R<sub>cam</sub> P<sub>C</sub>.</li>
+        <li>Subtract the can height (0.135 m) to get the can base, which is the PBVS target.</li>
+      </ol>
+      <p>The rail position shifts the robot base within the world frame, so the rail estimate affects the whole chain.</p>
+      <p><mark>[Optional: add a frame diagram image here.]</mark></p>
+
+      <!-- Sensing -->
+      <h2 class="title is-3" id="sensing">3. Sensing and calibration</h2>
+      <p>
+        The pinhole camera intrinsics K were found by rendering 14 checkerboard views at varied distance and tilt
+        in MuJoCo and calibrating with the Machine Vision Toolbox. The focal length is about 500 px.
+        Mean reprojection error: <mark>[value from your run] px</mark>.
+      </p>
+      <table class="table is-striped is-fullwidth">
+        <thead><tr><th>Noise source</th><th>Model</th></tr></thead>
+        <tbody>
+          <tr><td>Pixel position</td><td>Gaussian, &sigma; = 1 px</td></tr>
+          <tr><td>Depth</td><td>&sigma;(Z) = 0.0015 + 0.0022 Z&sup2; m, growing with distance</td></tr>
+          <tr><td>Joint encoders</td><td>Gaussian, variance 1e-5 rad&sup2;</td></tr>
+          <tr><td>Rail encoder</td><td>Gaussian, &sigma; = 2 mm</td></tr>
+          <tr><td>Centroid bias</td><td>3 mm, added to the filter's R rather than averaged away</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Depth noise grows with distance, so the PBVS target hovers 15 cm above the can,
+        where depth is more accurate and the can stays in view.
+      </p>
+
+      <!-- Estimation -->
+      <h2 class="title is-3" id="estimation">4. Estimation</h2>
+      <p>
+        <strong>Joint observer.</strong> A Luenberger-type observer runs a copy of the model and corrects it with the
+        encoder: x&#770;&#775; = A x&#770; + B u + L (y &minus; C x&#770;). The gain L is the steady-state Kalman gain from
+        <code>lqe</code> with process noise Q = diag(1e-3, 1) and measurement noise R = 1e-5.
+        Larger Q/R makes the estimate faster and noisier. Smaller Q/R makes it smoother and slower.
+        <mark>[State how you checked or tuned these values, e.g. the sweep in the results.]</mark>
+      </p>
+      <p>
+        <strong>Rail Kalman filter.</strong> Estimates rail position and velocity from the noisy encoder.
+      </p>
+      <p>
+        <strong>Can Kalman filter.</strong> The can is stationary, so the state is its 3D position with A = I, C = I.
+        Each photo is one noisy measurement. The filter starts at the centre of the spawn area with 0.2 m standard deviation,
+        uses a small process noise of 0.002 m, and builds R from the pixel noise converted to metres
+        (&sigma;<sub>xy</sub> = 1 px &times; Z/f), the depth noise at 0.45 m, and the 3 mm bias.
+        Consistency is checked with NEES: for a 3-state filter the mean should be near 3, and about 95% of trials should fall below 7.815.
+      </p>
+
+      <!-- Control -->
+      <h2 class="title is-3" id="control">5. Control</h2>
+      <p>
+        <strong>Joint LQR.</strong> Each joint uses u = &minus;K(x&#770; &minus; x<sub>ref</sub>) with weights
+        Q = diag(100, 1) and R = 1, which penalises angle error 100 times more than speed error.
+        Gains are computed per joint from its inertia. The controller uses the observer's estimate, not the true state.
+        <mark>[Paste the printed LQR gains here.]</mark>
+      </p>
+      <p>
+        <strong>Gravity feed-forward.</strong> Gravity torque at the estimated pose is added to each command,
+        so LQR only corrects the remaining error.
+      </p>
+      <p>
+        <strong>Rail.</strong> A discrete LQR with weights diag(1000, 1) and R = 0.01 acts on the Kalman estimate,
+        with force clipped at &plusmn;200 N.
+      </p>
+      <p>
+        <strong>PBVS.</strong> The error is the gripper position error to a point 15 cm above the estimated can,
+        plus a tilt error that keeps the gripper pointing down. Joint velocities are q&#775; = J<sup>+</sup> &lambda; e with
+        &lambda; = 2, applied for 0.2 s per step, repeating with a fresh photo each step until the error is below 2 mm.
+        Limits: motor torque limits, noise passing through the observer, and ignored joint coupling.
+      </p>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ===== RESULTS ===== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3">Results</h2>
+    <p class="content">
+      <mark>[Replace the placeholders below with your graphs from the <code>figures/</code> folder.
+      Copy them to <code>static/images/results/</code> and update each filename.]</mark>
+    </p>
 
     <div class="columns is-centered">
-
-      <!-- Visual Effects. -->
-      <div class="column">
-        <div class="content">
-          <h2 class="title is-3">CNN evaluation</h2>
-          <p>
-            Confusion matrix of the CNN evaluation on the test set.
-          </p>
-
-          <img src="./static/images/results/confusion_matrix_seaborn.png"
-            class="teaser-image"
-            alt="Teaser."/>
-        </div>
+      <div class="column content">
+        <h3 class="title is-4">Can position estimation</h3>
+        <p>
+          Estimate error against the &plusmn;2&sigma; uncertainty band, and NEES per trial against the 3 and 7.815 reference lines.
+        </p>
+        <img src="./static/images/results/nees.png" class="teaser-image" alt="Can position estimate and NEES consistency."/>
       </div>
-      <!--/ Visual Effects. -->
-
-      <!-- Matting. -->
-      <div class="column">
-        <h2 class="title is-3">DQN training</h2>
-        <div class="columns is-centered">
-          <div class="column content">
-            <p>
-              Sample of the reward convergence plot of the DQN training.
-            </p>
-            <img src="./static/images/results/reward_convergence_plot.png"
-            class="teaser-image"
-            alt="Teaser."/>
-          </div>
-        </div>
+      <div class="column content">
+        <h3 class="title is-4">Joint control</h3>
+        <p>
+          Tracking error and torque as a percentage of motor limits, and the effect of the LQR weight Q on effort against accuracy.
+        </p>
+        <img src="./static/images/results/joint_control.png" class="teaser-image" alt="Joint tracking error and torque usage."/>
       </div>
     </div>
-    <!--/ Matting. -->
 
+    <table class="table is-striped is-fullwidth">
+      <thead><tr><th>Metric</th><th>Result over <mark>[N]</mark> randomised trials</th></tr></thead>
+      <tbody>
+        <tr><td>Can position error after filtering (mm)</td><td><mark>[ ]</mark></td></tr>
+        <tr><td>Mean NEES (target about 3)</td><td><mark>[ ]</mark></td></tr>
+        <tr><td>PBVS convergence (photos to reach 2 mm)</td><td><mark>[ ]</mark></td></tr>
+        <tr><td>Grasp success rate</td><td><mark>[ ]</mark></td></tr>
+        <tr><td>Place error (mm)</td><td><mark>[ ]</mark></td></tr>
+      </tbody>
+    </table>
 
-
-
-    <!-- Concurrent Work. -->
     <div class="columns is-centered">
       <div class="column is-full-width">
         <h2 class="title is-3">Results discussion and reflection</h2>
-
         <div class="content has-text-justified">
           <p>
-            This is a sample text to show how the results discussion and reflection would look like in your own project. You can use this space to describe the main results obtained, the limitations of your work, and the future work that could be done.
+            <mark>[Explain why the results look as they do: what drives the can estimate error,
+            where the observer lags, how tracking error trades against torque, and which failures you saw and traced.]</mark>
           </p>
-          <p>
-            Orem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </p>
+          <p><strong>Limitations.</strong></p>
+          <ul>
+            <li>Joint coupling is ignored and inertia is held constant at one pose.</li>
+            <li>Noise values are injected by us, so robustness is to our noise models rather than real sensor behaviour.</li>
+            <li>Some simulator poses (camera pose, gripper pose and Jacobian) are used by the visual-servo kinematics instead of values computed from the estimates. <mark>[Confirm or change this once you have decided how to handle it.]</mark></li>
+            <li>If the can leaves the image, no measurement is available and the code does not yet skip the update.</li>
+            <li>Simulation only. <mark>[Update if you completed any hardware work.]</mark></li>
+          </ul>
         </div>
       </div>
     </div>
-    <!--/ Concurrent Work. -->
-
   </div>
 </section>
 
 
-<section class="section" id="BibTeX">
+<!-- ===== INSTALL AND RUN ===== -->
+<section class="section">
   <div class="container is-max-desktop content">
-    <h2 class="title">BibTeX</h2>
-    <pre><code>@article{park2021nerfies,
-  author    = {Park, Keunhong and Sinha, Utkarsh and Barron, Jonathan T. and Bouaziz, Sofien and Goldman, Dan B and Seitz, Steven M. and Martin-Brualla, Ricardo},
-  title     = {Nerfies: Deformable Neural Radiance Fields},
-  journal   = {ICCV},
-  year      = {2021},
-}</code></pre>
+    <h2 class="title is-3">Install and run</h2>
+    <pre><code>git clone https://github.com/WRicho/BartendingRobotSensors.git
+cd BartendingRobotSensors
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+pip install -r requirements.txt
+
+python MainRunFileMujoco.py     # runs one randomised pick-and-place trial
+python graphs.py                # regenerates the figures from saved results</code></pre>
+    <p>
+      Expected behaviour: a MuJoCo viewer opens and a camera window shows the detected can.
+      Press Enter at the prompt, and the robot looks, estimates the can position, aligns on the rail,
+      servos above the can, grasps it, and places it on the blue plate.
+      Simulator ground truth is used only for evaluation and printed error values.
+    </p>
+    <p><mark>[Check that requirements.txt is in the repo and lists numpy, mujoco, matplotlib, control, opencv-python and machinevision-toolbox-python.]</mark></p>
+  </div>
+</section>
+
+
+<!-- ===== AI DECLARATION AND REFERENCES ===== -->
+<section class="section" id="declaration">
+  <div class="container is-max-desktop content">
+    <h2 class="title is-3">Generative AI declaration</h2>
+    <p>
+      <mark>[State each tool used and what it was used for, for example: "Claude (Anthropic) was used to explain
+      concepts for the viva and to help draft this project page. All design choices, parameter values and results come from our own code and runs."
+      Edit this to be accurate for your team.]</mark>
+    </p>
+
+    <h2 class="title is-3">References and acknowledgements</h2>
+    <ul>
+      <li>Weekly 41014 tutorial code, adapted for this platform.</li>
+      <li>MuJoCo documentation and MuJoCo Menagerie models (UR3e, RealSense D435i).</li>
+      <li>Robotics Toolbox and Machine Vision Toolbox (Peter Corke) for camera calibration.</li>
+      <li>python-control library for LQR and Kalman gain design.</li>
+      <li><mark>[Add anything listed in your WhereIGotCodeFrom file.]</mark></li>
+    </ul>
   </div>
 </section>
 
 
 <footer class="footer">
   <div class="container">
-    <div class="content has-text-centered">
-      <a class="icon-link"
-         href="./static/videos/nerfies_paper.pdf">
-        <i class="fas fa-file-pdf"></i>
-      </a>
-      <a class="icon-link" href="https://github.com/keunhong" class="external-link" disabled>
-        <i class="fab fa-github"></i>
-      </a>
-    </div>
     <div class="columns is-centered">
       <div class="column is-8">
-        <div class="content">
+        <div class="content has-text-centered">
           <p>
             This website is licensed under a <a rel="license"
                                                 href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
             Commons Attribution-ShareAlike 4.0 International License</a>.
           </p>
           <p>
-            This means you are free to borrow the <a
-              href="https://github.com/nerfies/nerfies.github.io">source code</a> of the  website,
-            we just ask that you link back to this page in the footer.
-            Please remember to remove the analytics code included in the header of the website which
-            you do not want on your website.
+            Page template adapted from the <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>
+            project page, via the
+            <a href="https://rfalque.github.io/41118_project-sample/">41118 sample portfolio</a>.
           </p>
         </div>
       </div>
