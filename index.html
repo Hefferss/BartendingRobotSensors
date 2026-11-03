@@ -102,57 +102,37 @@
 </section>
 
 
-<!-- ===== TEAM PROFILES ===== -->
-<!-- Put photos in static/images/team/ as will.jpg, jack.jpg, james.jpg, banjo.jpg.
-     Until then a grey placeholder silhouette is shown. -->
+<!-- ===== TEAM MEMBERS (template carousel) ===== -->
+<!-- Add photos to static/images/team/ as will.jpg, jack.jpg, james.jpg, banjo.jpg.
+     Until then a labelled placeholder image is shown. -->
 <section class="hero is-light is-small">
   <div class="hero-body">
-    <div class="container is-max-desktop">
-      <h2 class="title is-3 has-text-centered cw">Team</h2>
-      <div class="columns is-multiline">
-        <div class="column is-half">
-          <div class="box cw has-text-centered">
-            <figure class="image is-128x128" style="margin: 0 auto 1rem;">
-              <img class="is-rounded" src="./static/images/team/will.jpg"
-                   onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22&gt;&lt;rect width=%22128%22 height=%22128%22 fill=%22%23dbdbdb%22/&gt;&lt;circle cx=%2264%22 cy=%2250%22 r=%2224%22 fill=%22%23999%22/&gt;&lt;path d=%22M16 128c0-30 22-46 48-46s48 16 48 46z%22 fill=%22%23999%22/&gt;&lt;/svg&gt;';"
-                   alt="William Richardson">
-            </figure>
-            <p class="title is-5">William Richardson</p>
-            <p><strong>Control lead.</strong> [one or two sentences on what you built and tuned]</p>
-          </div>
+    <div class="container">
+      <h2 class="title is-3">Team members</h2>
+      <div id="results-carousel" class="carousel results-carousel">
+        <div class="item">
+          <img src="./static/images/team/will.jpg"
+            onerror="this.onerror=null;this.src='./static/images/team/will_placeholder.svg';"
+            class="teaser-image"
+            alt="William Richardson."/>
         </div>
-        <div class="column is-half">
-          <div class="box cw has-text-centered">
-            <figure class="image is-128x128" style="margin: 0 auto 1rem;">
-              <img class="is-rounded" src="./static/images/team/jack.jpg"
-                   onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22&gt;&lt;rect width=%22128%22 height=%22128%22 fill=%22%23dbdbdb%22/&gt;&lt;circle cx=%2264%22 cy=%2250%22 r=%2224%22 fill=%22%23999%22/&gt;&lt;path d=%22M16 128c0-30 22-46 48-46s48 16 48 46z%22 fill=%22%23999%22/&gt;&lt;/svg&gt;';"
-                   alt="Jack Heffernan">
-            </figure>
-            <p class="title is-5">Jack Heffernan</p>
-            <p><strong>Estimation and modelling lead.</strong> Can and rail Kalman filters, modelling content.</p>
-          </div>
+        <div class="item item-chair-tp">
+          <img src="./static/images/team/jack.jpg"
+            onerror="this.onerror=null;this.src='./static/images/team/jack_placeholder.svg';"
+            class="teaser-image"
+            alt="Jack Heffernan."/>
         </div>
-        <div class="column is-half">
-          <div class="box cw has-text-centered">
-            <figure class="image is-128x128" style="margin: 0 auto 1rem;">
-              <img class="is-rounded" src="./static/images/team/james.jpg"
-                   onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22&gt;&lt;rect width=%22128%22 height=%22128%22 fill=%22%23dbdbdb%22/&gt;&lt;circle cx=%2264%22 cy=%2250%22 r=%2224%22 fill=%22%23999%22/&gt;&lt;path d=%22M16 128c0-30 22-46 48-46s48 16 48 46z%22 fill=%22%23999%22/&gt;&lt;/svg&gt;';"
-                   alt="James Witcombe">
-            </figure>
-            <p class="title is-5">James Witcombe</p>
-            <p><strong>Sensing lead.</strong> [what you did]</p>
-          </div>
+        <div class="item item-fullbody">
+          <img src="./static/images/team/james.jpg"
+            onerror="this.onerror=null;this.src='./static/images/team/james_placeholder.svg';"
+            class="teaser-image"
+            alt="James Witcombe."/>
         </div>
-        <div class="column is-half">
-          <div class="box cw has-text-centered">
-            <figure class="image is-128x128" style="margin: 0 auto 1rem;">
-              <img class="is-rounded" src="./static/images/team/banjo.jpg"
-                   onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22&gt;&lt;rect width=%22128%22 height=%22128%22 fill=%22%23dbdbdb%22/&gt;&lt;circle cx=%2264%22 cy=%2250%22 r=%2224%22 fill=%22%23999%22/&gt;&lt;path d=%22M16 128c0-30 22-46 48-46s48 16 48 46z%22 fill=%22%23999%22/&gt;&lt;/svg&gt;';"
-                   alt="Banjo Taylor">
-            </figure>
-            <p class="title is-5">Banjo Taylor</p>
-            <p><strong>Results lead.</strong> [what you did]</p>
-          </div>
+        <div class="item item-shiba">
+          <img src="./static/images/team/banjo.jpg"
+            onerror="this.onerror=null;this.src='./static/images/team/banjo_placeholder.svg';"
+            class="teaser-image"
+            alt="Banjo Taylor."/>
         </div>
       </div>
     </div>
