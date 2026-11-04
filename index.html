@@ -20,8 +20,8 @@
   <link rel="stylesheet" href="./static/css/index.css">
   <link rel="icon" href="./static/images/favicon.png">
 
-  <!-- YELLOW = content written by Claude (class "cw"). Team-written content has no highlight.
-       To remove all highlighting before submission, delete this style block. -->
+  <!-- Highlighted (class "cw") = draft content still to be checked and rewritten.
+       Delete this style block to remove all highlighting before submission. -->
   <style>
     .cw { background: #fff176 !important; }
   </style>
@@ -94,8 +94,8 @@
            class="teaser-image"
            alt="System pipeline: sensors feed estimators, estimators feed controllers, controllers drive the UR3 on a rail."/>
       <h2 class="subtitle has-text-centered">
-        Description Go Here IDK WHY BUT THIS HAT TO BE THIS LONG FOR IMAGE TO SCALE CORRECTYL??? IDK WHY
-       
+        Our system uses a UR3 robot arm on a linear rail, using Mujoco to simulate it finding a randomly placed can on a mounted RGB-D camera, picking it up and placing it on a target plate. The camera reading from the RGB-D camera is turned into a 3D position, then cleaned up using Kalman filters, and used to give information to the rail and arm with LQR controllers and position-based visual servoing. The controllers use estimation states and never ground truth, which is only added for testing purposes.
+        This project page is split into four main parts (Sensing, Estimation, Control and Results), with each team member leading the content for one part. Each part explains how that component works in our system, the design choices behind them, and how we iterated on and tested them.
       </h2>
     </div>
   </div>
@@ -237,7 +237,7 @@
       </ul>
 
 
-      <!-- ===== SENSING (James) - drafted by Claude ===== -->
+      <!-- ===== SENSING (James) ===== -->
       <h2 class="title is-3" id="sensing">Sensing - James</h2>
       <p class="cw">[James: replace or extend this draft with your own explanation, the design choices you made, and how you tested it.]</p>
 
@@ -275,7 +275,7 @@
       <p class="cw">The rail position shifts the robot base within the world frame, so the rail estimate affects the whole chain. [Optional: add a frame diagram image here.]</p>
 
 
-      <!-- ===== ESTIMATION (Jack) - team text plus Claude additions ===== -->
+      <!-- ===== ESTIMATION (Jack) ===== -->
       <h2 class="title is-3" id="estimation">Estimation - Jack</h2>
 
       <h3 class="title is-4">Can Kalman Filter</h3>
@@ -364,39 +364,80 @@
       </p>
 
 
-      <!-- ===== CONTROL (Will) - drafted by Claude ===== -->
+      <!-- ===== CONTROL (Will) ===== -->
       <h2 class="title is-3" id="control">Control - Will</h2>
-      <p class="cw">[Will: replace or extend this draft with your own explanation, your tuning process and your results.]</p>
-
-      <h3 class="title is-4 cw">Joint LQR</h3>
-      <p class="cw">
-        Each joint uses u = &minus;K(x&#770; &minus; x<sub>ref</sub>) with weights Q = diag(100, 1) and R = 1, which penalises angle error
-        100 times more than speed error. Gains are computed per joint from its inertia. For this model the angle gain works out to
-        &radic;(Q<sub>11</sub>/R) = 10 for every joint, while the speed gain depends on the joint inertia. The controller uses the observer&rsquo;s
-        estimate, not the true state. [Paste the printed LQR gains here and check the first column is 10.]
+      <p>
+        All three controllers act on estimated states. We use LQR for the six arm joints, LQR for the rail and a Position Based Visual Servo (PBVS) that decides where the arm should go. For every step the controllers update (2ms)
       </p>
 
-      <h3 class="title is-4 cw">Gravity feed-forward</h3>
-      <p class="cw">
-        The model has no gravity term, so the gravity torque at the estimated pose is added to each command and LQR only corrects the
-        remaining error.
+      <h3 class="title is-4">Joint LQR</h3>
+      <p>
+        <strong>What it does:</strong> Joint LQR determines the amount of torque each joint should use to reach its target angle. It uses the speed and angle estimation by the joint observer as opposed to real values.
+      </p>
+      <p>
+        <strong>How:</strong> LQR balances our rating of how far away we want to be from target (Q) and our setting of how limited we want to adjust torque (R). Torque = &minus;K&times;(estimated state &minus; target) where we set target speed at 0. It can be thought of as the spring or force that pulls the joint to the target (K<sub>1</sub>) plus a damper that prevents it moving too fast (K<sub>2</sub>).
+      </p>
+      <p>
+        <strong>Weights:</strong> We found that the combination of Q = diag(100, 1) &amp; R = 1. We penalise the angle error 100x more than the speed meaning the controller favours reaching the target. We used a double integrator model which makes the angle gain 10 for each joint, and speed gain depends on the joint inertia. For a double integrator this gives K<sub>1</sub> = &radic;(Q<sub>11</sub>/R) = 10 N&middot;m/rad for every joint, while K<sub>2</sub> = &radic;(1 + 20J) depends on the joint inertia J. The benefit is heavy joints move slowly and each joint is well damped since it doesn&rsquo;t drop below 0.71.
+      </p>
+      <p>
+        <strong>Why:</strong> The weight we&rsquo;ve chosen given reasonably settles with arm&rsquo;s joints without exceeding the motor torque limits. Raising Q increased noise in the torque since the estimate speed noise passes through K<sub>2</sub> which is why we stopped at 100.
       </p>
 
-      <h3 class="title is-4 cw">Rail control</h3>
-      <p class="cw">
-        A discrete LQR with weights diag(1000, 1) and R = 0.01 acts on the Kalman estimate, with force clipped at &plusmn;200 N.
+      <h3 class="title is-4">Gravity Feed-Forward</h3>
+      <p>
+        <strong>What it does:</strong> Gravity Feed Forward stops the arm sagging from its weight so LQR only deals with residual error.
+      </p>
+      <p>
+        <strong>How:</strong> Because our joint model has no gravity each step we copy the arm&rsquo;s estimated joint angles into another MuJoCo data object and determines what torque is required at that pose to overcome gravity which is then added to the LQR output.
+      </p>
+      <p>
+        <strong>Why:</strong> Our joint model has no gravity term and without it we would have a steady-state error. With K<sub>1</sub> = 10 a 5 N.m gravity torque would leave a 0.5 rad offset. Feed forward uses the known model, adds no state and leaves feedback to correct model error.
       </p>
 
-      <h3 class="title is-4 cw">PBVS</h3>
-      <p class="cw">
-        The error is the gripper position error to a point 15 cm above the estimated can, plus a tilt error that keeps the gripper pointing
-        down. Joint velocities are q&#775; = J<sup>+</sup> &lambda; e with &lambda; = 2, applied for 0.2 s per step, repeating with a fresh photo each
-        step until the error is below 2 mm. Limits on the gains: motor torque limits, noise passing through the observer, and ignored joint coupling.
-        [Add how &lambda; and the LQR weights were chosen.]
+      <h3 class="title is-4">Rail LQR</h3>
+      <p>
+        <strong>What it does:</strong> This is used for the rail that the UR3 sits on from our IR assignment. It moves the base of the UR3 along the rail using the speed and position from a Kalman filter.
+      </p>
+      <p>
+        <strong>How:</strong> It is a discrete LQR with weights diag(1000,1) &amp; R = 0.01. The position error here we penalise more than the joints and a reduced R value since the rail requires a lot of force to move. The output force is limited at 200N. The Rail target is the estimated can position converted to a rail position.
+      </p>
+
+      <h3 class="title is-4">Position Based Visual Servoing (PBVS)</h3>
+      <p>
+        <strong>What it does:</strong> Moves the gripper above the can using the Kalman Filter&rsquo;s estimate, then down to pick it up. &ldquo;Position Based&rdquo; is where the error is worked out in 3D from the estimated can position, instead of from pixel errors in the image.
+      </p>
+      <p>
+        <strong>How:</strong> For each step we find two errors; Distance to target &amp; Angle distance to being vertical. We scale them by a gain &lambda; = 2 to get the desired end effector velocity. The Jacobian allows us to turn joint speeds into end effector speed at the current pose, the code uses its pseudo-inverse to turn desired velocity into joint speeds then moves the joints for 0.2 s and takes another photo. We repeat this process until the position error is under 2mm. The target is 0.15 m above the can for the approach then 0.01 m above the can to grab.
+      </p>
+      <p>
+        <strong>Why:</strong> We use PBVS instead of image based because the calibrated RGB-D camera gives 3D position it&rsquo;s simpler to gain error. We use a closed loop rephotographing every move for more accuracy in the filter. The 0.15 height allows camera to remain in view with improved accuracy.
+      </p>
+
+      <h3 class="title is-4">Parameter Summary</h3>
+      <table class="table is-fullwidth">
+        <thead><tr><th>Item</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Joint LQR weights</td><td>Q = diag(100, 1), R = 1</td></tr>
+          <tr><td>Joint LQR angle gain</td><td>10 for every joint</td></tr>
+          <tr><td>Joint LQR speed gain</td><td>&radic;(1 + 20J), per joint [paste printed values]</td></tr>
+          <tr><td>Rail LQR weights</td><td>Q = diag(1000, 1), R = 0.01 (discrete)</td></tr>
+          <tr><td>Rail force limit</td><td>&plusmn;200 N</td></tr>
+          <tr><td>PBVS gain &lambda;</td><td>2</td></tr>
+          <tr><td>PBVS step and stopping rule</td><td>0.2 s per move, stop at 2 mm error</td></tr>
+          <tr><td>Control update rate</td><td>every 2 ms simulation step</td></tr>
+        </tbody>
+      </table>
+
+      <p>
+        <strong>Location In Code:</strong> The gains are designed at the top of LQRPart.py and UR3_move_joints_lqr() in LQRPart.py applies the joint LQR, Gravity Feed-Forward and Rail LQR each step. move_gripper() in MainRunFileMujoco.py is the PBVS step.
+      </p>
+      <p>
+        <strong>Content used:</strong> The Week 6 LQR tutorial for the gain design (ct.lqr and the discrete version for the rail), and the Week 8 DC motor servo model as the starting point for the joint model
       </p>
 
 
-      <!-- ===== RESULTS (Banjo) - placeholders by Claude ===== -->
+      <!-- ===== RESULTS (Banjo) ===== -->
       <h2 class="title is-3" id="results">Results - Banjo</h2>
       <p class="cw">
         [Banjo: replace the placeholders below with your graphs from the figures/ folder. Copy them to static/images/results/ and update each filename.]
@@ -443,38 +484,38 @@
 
       <!-- ===== HOW TO RUN (team) ===== -->
       <h2 class="title is-3" id="run">How to Run</h2>
-      <p class="cw">These steps assume Windows with PowerShell, as used in our setup. You need Git and Python installed first.</p>
+      <p>These steps assume Windows with PowerShell, as used in our setup. You need Git and Python installed first.</p>
       <ol>
         <li>
           <strong>Download:</strong>
 <pre><code>git clone https://github.com/Hefferss/BartendingRobotSensors
 cd BartendingRobotSensors</code></pre>
-          <span class="cw">If you don&rsquo;t use Git, click Code, then Download ZIP on the GitHub page, unzip it, and open a terminal in that folder. Run every later command from inside the project folder.</span>
+          <span>If you don&rsquo;t use Git, click Code, then Download ZIP on the GitHub page, unzip it, and open a terminal in that folder. Run every later command from inside the project folder.</span>
         </li>
         <li>
           <strong>Set up Python (if you haven&rsquo;t already):</strong>
 <pre><code>python -m venv .venv
 .venv\Scripts\activate</code></pre>
-          <span class="cw">The first line creates a private environment for the project&rsquo;s packages and the second switches it on. You should see (.venv) at the start of the terminal line. If PowerShell refuses to run the activate script, run <code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned</code> and then activate again.</span>
+          <span>The first line creates a private environment for the project&rsquo;s packages and the second switches it on. You should see (.venv) at the start of the terminal line. If PowerShell refuses to run the activate script, run <code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned</code> and then activate again.</span>
         </li>
         <li>
           <strong>Install the packages:</strong>
 <pre><code>pip install mujoco numpy control matplotlib</code></pre>
-          <span class="cw">Do this with the environment active. If a later run stops with <code>ModuleNotFoundError: No module named 'x'</code>, install that package with <code>pip install x</code>.</span>
+          <span>Do this with the environment active. If a later run stops with <code>ModuleNotFoundError: No module named 'x'</code>, install that package with <code>pip install x</code>.</span>
         </li>
         <li>
           <strong>Run the demo</strong> by playing <code>MainRunFileMujoco.py</code>:
 <pre><code>python MainRunFileMujoco.py</code></pre>
-          <span class="cw">You can also open the file in VS Code and press the play button, as long as the selected Python interpreter is the .venv one.</span>
+          <span>You can also open the file in VS Code and press the play button, as long as the selected Python interpreter is the .venv one.</span>
         </li>
         <li>
           <strong>Simulate a disturbance:</strong> use <code>push_on = True</code> in <code>MainRunFileMujoco.py</code> to simulate a 5N push.
-          <span class="cw">Open the file, set <code>push_on</code> to <code>True</code>, save, and run it again. Set it back to <code>False</code> for a normal run.</span>
+          <span>Open the file, set <code>push_on</code> to <code>True</code>, save, and run it again. Set it back to <code>False</code> for a normal run.</span>
         </li>
       </ol>
 
-      <h3 class="title is-4 cw">What you should see</h3>
-      <ol class="cw">
+      <h3 class="title is-4">What you should see</h3>
+      <ol>
         <li>A MuJoCo viewer opens with the UR3 on its rail and a randomly placed can, and a separate window shows the camera image. If the terminal waits for input, press Enter to continue.</li>
         <li>The arm moves to its look pose and takes 20 photos. The terminal prints the Kalman filter&rsquo;s can estimate, its uncertainty and the error against the true position.</li>
         <li>The base slides along the rail to line up with the can, then the gripper steps down in small moves until it is 0.15 m above the can, updating the estimate after every photo.</li>
@@ -482,28 +523,28 @@ cd BartendingRobotSensors</code></pre>
         <li>The viewer stays open at the end. Close it to finish the run, after which the rail estimate plot appears.</li>
       </ol>
 
-      <h3 class="title is-4 cw">Optional scripts</h3>
-      <p class="cw">
+      <h3 class="title is-4">Optional scripts</h3>
+      <p>
         <code>CameraCalibration.py</code> needs two more packages (<code>pip install opencv-python machinevision-toolbox-python</code>) and reproduces the camera calibration.
         <code>graphs.py</code> regenerates the result figures from the saved files in the results folder.
       </p>
-      <p class="cw">[Add the Python version you used and any other setup notes, such as whether RailEstimation.py needs to sit in the same folder as the other scripts.]</p>
+      <p>[Add the Python version you used and any other setup notes, such as whether RailEstimation.py needs to sit in the same folder as the other scripts.]</p>
 
 
-      <!-- ===== CONTRIBUTION (team, gaps by Claude) ===== -->
+      <!-- ===== CONTRIBUTION ===== -->
       <h2 class="title is-3" id="contribution">Contribution</h2>
       <table class="table is-fullwidth">
         <thead><tr><th>Individual</th><th>Contribution</th></tr></thead>
         <tbody>
           <tr><td>Jack</td><td>Estimation Content, Modelling Content, and small parts of other sections</td></tr>
-          <tr><td>Will</td><td>Control content <mark class="cw">[add specifics: files, functions, what you tuned]</mark></td></tr>
+          <tr><td>Will</td><td>Part D - Control, Setting up Website</td></tr>
           <tr><td>Banjo</td><td>Results content <mark class="cw">[add specifics]</mark></td></tr>
           <tr><td>James</td><td>Sensing content <mark class="cw">[add specifics]</mark></td></tr>
         </tbody>
       </table>
 
 
-      <!-- ===== GEN AI (team, addition by Claude) ===== -->
+      <!-- ===== GEN AI DECLARATION ===== -->
       <h2 class="title is-3" id="declaration">Gen AI declaration</h2>
       <p>
         As a group, we used AI to understand earlier weeks content in order to gain a strong basis for modeling content for this progress.
@@ -511,9 +552,7 @@ cd BartendingRobotSensors</code></pre>
         into Mujoco or very minor bug fixing. We made sure that we didn&rsquo;t allow AI to write the code for us, instead using it as a guide
         in understanding the content.
       </p>
-
-
-      <!-- ===== ACKNOWLEDGEMENTS (team, additions by Claude) ===== -->
+      <!-- ===== ACKNOWLEDGEMENTS ===== -->
       <h2 class="title is-3" id="acknowledgements">Acknowledgements</h2>
       <ul>
         <li>41014 weekly tutorials</li>
@@ -522,7 +561,6 @@ cd BartendingRobotSensors</code></pre>
         <li>Libraries: MuJoCo, NumPy, python-control, Machine Vision Toolbox, OpenCV, Matplotlib.</li>
         <li>Earlier Bartending Industrial Robotics work, which we utilized some of the STL&rsquo;s of to make this project possible.</li>
         <li>RealSense D435i Camera</li>
-        <li class="cw">[Add anything from your WhereIGotCodeFrom file, and the MuJoCo Menagerie UR3e model if you used it.]</li>
       </ul>
 
     </div>
