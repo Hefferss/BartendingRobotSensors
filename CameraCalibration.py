@@ -4,35 +4,35 @@ import mujoco
 import cv2
 from machinevisiontoolbox import CentralCamera, Image
 
-#make a checkerboard picture. 9 x 6 inside corners (where 4 squares meet), same as the week 3 board
-corners_across, corners_down, square_size = 9, 6, 0.03 #corners across, corners down, and each square is 3cm. called gx, gy, sq in the tutorial. same 9 x 6 corners as week 3, the tutorial squares are 2.5cm
-board = np.full((9 * 60, 12 * 60), 255, dtype=np.uint8) #a white page, room for 12 x 9 squares of 60 pixels (the board plus a white border)
+#creates a black and white checkerboard apperance 9 by 6 squares 3cm big 
+corners_across, corners_down, square_size = 9, 6, 0.03 #corners across, corners down, and each square is 3cm they were called gx, gy, sq in the tut
+board = np.full((9 * 60, 12 * 60), 255, dtype=np.uint8) #blank white page 12 x 9 60 pixels per square 540x720 -- extra 60px for boarder around checkers
 for j in range(7):
     for i in range(10):
-        if (i + j) % 2 == 0: #every second square goes black, like a chess board
+        if (i + j) % 2 == 0: #makes every second square black 
             board[(j + 1) * 60:(j + 2) * 60, (i + 1) * 60:(i + 2) * 60] = 0
-cv2.imwrite("checkerboard.png", board) #save it so mujoco can paint it onto a board. making the board and the mujoco bench scene is not from a lab, the week 3 tutorial uses ready-made photos
+cv2.imwrite("checkerboard.png", board) #save it as a png so mujoco can paint it onto a board 
 
-#a little world with just a camera and the checkerboard. built the same way as MujocoScene.py
+# small mujoco sim with a camera and the checkerboard
 spec = mujoco.MjSpec()
-spec.add_texture(name="checkerboard", type=mujoco.mjtTexture.mjTEXTURE_2D, file="checkerboard.png") #load the picture
-spec.add_material(name="checkerboard", textures=["", "checkerboard"]) #turn it into a "paint" we can put on a shape
-board_body = spec.worldbody.add_body(name="board", mocap=True) #mocap = we can move it anywhere by hand for each photo
+spec.add_texture(name="checkerboard", type=mujoco.mjtTexture.mjTEXTURE_2D, file="checkerboard.png") #load the checker png
+spec.add_material(name="checkerboard", textures=["", "checkerboard"]) #adds a material to the png so it can be used in the sim to wrap an object
+board_body = spec.worldbody.add_body(name="board", mocap=True) #mocap is an object were you can write position, lets us move the board
 board_body.add_geom(type=mujoco.mjtGeom.mjGEOM_BOX, size=[6 * square_size, 4.5 * square_size, 0.001], material="checkerboard") #a thin flat box with the checkerboard painted on. 12 x 9 squares including the border
-spec.worldbody.add_camera(name="bench_cam", fovy=51.28) #same settings as wrist_cam in MujocoScene.py, so the K we get is the wrist camera's K
+spec.worldbody.add_camera(name="bench_cam", fovy=51.28) #creates a camera at the origin -- same settings as wrist_cam in MujocoScene.py so that K value is the same 
 model = spec.compile()
 data = mujoco.MjData(model)
 renderer = mujoco.Renderer(model, 480, 640) #takes 640 x 480 photos
 
-#take 14 photos of the board at different spots and tilts, like the 14 images in the week 3 tutorial
+#take 14 photos of the board at different spots and tilts to locate object 
 random = np.random.default_rng(0) #fixed random numbers so it gives the same answer every time
 images = []
 for k in range(14):
-    data.mocap_pos[0] = [random.uniform(-0.05, 0.05), random.uniform(-0.05, 0.05), -random.uniform(0.45, 0.65)] #move the board a bit left/right/up/down, and 0.45 to 0.65m away (about how far the can is)
-    mujoco.mju_euler2Quat(data.mocap_quat[0], random.uniform(-0.5, 0.5, 3), "xyz") #tilt it up to about 30 degrees each way. tilted views are what let the calibration work out the zoom
+    data.mocap_pos[0] = [random.uniform(-0.05, 0.05), random.uniform(-0.05, 0.05), -random.uniform(0.45, 0.65)] #move the board left/right/up/down, and 0.45 to 0.65m away (about how far the can is)
+    mujoco.mju_euler2Quat(data.mocap_quat[0], random.uniform(-0.5, 0.5, 3), "xyz") #tilt it up to about 30 degrees each way. tilted views are required for distance vs focal length calculations 
     mujoco.mj_forward(model, data) #update the world with the new board spot
     renderer.update_scene(data, camera="bench_cam")
-    images.append(Image(renderer.render())) #take the photo
+    images.append(Image(renderer.render())) #take the photo x 14
 
 #part b. calibrate: find the checkerboard corners in every photo and work out the K that explains them all. same line as the week 3 tutorial
 K, dist, frames = CentralCamera.images2C(images, gridshape=(corners_across, corners_down), squaresize=square_size) #K = zoom and centre, dist = lens bend, frames = where the board was in each photo

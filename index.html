@@ -236,44 +236,40 @@
         <li><strong>Content used:</strong> Week 5 tutorial (ctrb and obsv).</li>
       </ul>
 
-
       <!-- ===== SENSING (James) ===== -->
       <h2 class="title is-3" id="sensing">Sensing - James</h2>
-      <p class="cw">[James: replace or extend this draft with your own explanation, the design choices you made, and how you tested it.]</p>
 
-      <h3 class="title is-4 cw">Camera calibration</h3>
-      <p class="cw">
-        The pinhole camera intrinsics K were found by rendering 14 checkerboard views at varied distance and tilt
-        in MuJoCo and calibrating with the Machine Vision Toolbox (<code>CameraCalibration.py</code>). The focal length is about 500 px.
-        Mean reprojection error: [value from your run] px.
+      <h3 class="title is-4">Camera calibration</h3>
+      <p>
+        The pinhole camera intrinsics K were found by rendering 14 camera views of a checkboard approximatly 0.45-0.65 m away at these varied distances as well as varying tilt +/- 30 degrees alongside distance
+        inside the MuJoCo simulation then calibrated with the Machine Vision Toolbox (<code>CameraCalibration.py</code>). Through this process K is found in each of the 14 images using (<code>Central.Camera.images2C</code>). The focal length is just under 500 px.
+        Mean reprojection error: 0.18 px. 
       </p>
 
-      <h3 class="title is-4 cw">Noise models</h3>
+      <h3 class="title is-4">Noise models</h3>
       <table class="table is-fullwidth">
-        <thead><tr><th class="cw">Noise source</th><th class="cw">Model</th></tr></thead>
+        <thead><tr><th>Noise source</th><th>Model</th></tr></thead>
         <tbody>
-          <tr><td class="cw">Pixel position</td><td class="cw">Gaussian, &sigma; = 1 px</td></tr>
-          <tr><td class="cw">Depth</td><td class="cw">&sigma;(Z) = 0.0015 + 0.0022 Z&sup2; m, growing with distance</td></tr>
-          <tr><td class="cw">Joint encoders</td><td class="cw">Gaussian, variance 1e-5 rad&sup2;</td></tr>
-          <tr><td class="cw">Rail encoder</td><td class="cw">Gaussian, &sigma; = 2 mm</td></tr>
-          <tr><td class="cw">Centroid bias</td><td class="cw">3 mm, added to the filter&rsquo;s R rather than averaged away</td></tr>
+          <tr><td>Pixel position</td><td>Gaussian, &sigma; = 1 px</td></tr>
+          <tr><td>Depth</td><td>&sigma;(Z) = 0.0015 + 0.0022 Z&sup2; m, growing with distance</td></tr>
+          <tr><td>Joint encoders</td><td>Gaussian, variance 1e-5 rad&sup2;</td></tr>
+          <tr><td>Rail encoder</td><td>Gaussian, &sigma; = 2 mm</td></tr>
+          <tr><td>Centroid bias</td><td>3 mm, added to the filter&rsquo;s R rather than averaged away</td></tr>
         </tbody>
       </table>
-      <p class="cw">
-        Depth noise grows with distance, so the PBVS target hovers 15 cm above the can,
-        where depth is more accurate and the can stays in view.
+      <p>
+        Depth noise grows with distance, so the PBVS target hovers 15 cm above the can this allows for a balance of 2 variables where depth is more accurate enough while keeping the can in view.
       </p>
 
-      <h3 class="title is-4 cw">Frames: from pixel to the quantity the controller acts on</h3>
-      <ol class="cw">
+      <h3 class="title is-4">Frames: from pixel to the quantity the controller acts on</h3>
+      <ol>
         <li>Pixel (u, v) and depth Z from the wrist camera.</li>
         <li>Camera frame, computer-vision convention: P<sub>C</sub> = Z &middot; K<sup>-1</sup>[u, v, 1]<sup>T</sup>.</li>
         <li>Axis flip by [1, &minus;1, &minus;1] to the MuJoCo camera convention (camera looks along &minus;z).</li>
         <li>World frame: P<sub>W</sub> = p<sub>cam</sub> + R<sub>cam</sub> P<sub>C</sub>.</li>
         <li>Subtract the can height (0.135 m) to get the can base, which is the PBVS target.</li>
       </ol>
-      <p class="cw">The rail position shifts the robot base within the world frame, so the rail estimate affects the whole chain. [Optional: add a frame diagram image here.]</p>
-
+      <p>The rail position shifts the robot base within the world frame, so the rail estimate affects the whole chain. </p>
 
       <!-- ===== ESTIMATION (Jack) ===== -->
       <h2 class="title is-3" id="estimation">Estimation - Jack</h2>
