@@ -20,11 +20,6 @@
   <link rel="stylesheet" href="./static/css/index.css">
   <link rel="icon" href="./static/images/favicon.png">
 
-  <!-- Highlighted (class "cw") = draft content still to be checked and rewritten.
-       Delete this style block to remove all highlighting before submission. -->
-  <style>
-    .cw { background: #fff176 !important; }
-  </style>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="./static/js/fontawesome.all.min.js"></script>
@@ -101,7 +96,7 @@
 </section>
 
 
-<!-- ===== TEAM MEMBERS (template carousel) ===== -->
+<!-- ===== TEAM MEMBERS ===== -->
 <!-- Add photos to static/images/team/ as will.jpg, jack.jpg, james.jpg, banjo.jpg.
      Until then a labelled placeholder image is shown. -->
 <section class="hero is-light is-small">
@@ -416,46 +411,133 @@
 
       <!-- ===== RESULTS (Banjo) ===== -->
       <h2 class="title is-3" id="results">Results - Banjo</h2>
-      <p class="cw">
-        [Banjo: replace the placeholders below with your graphs from the figures/ folder. Copy them to static/images/results/ and update each filename.]
+
+      <h3 class="title is-4">How we tested it</h3>
+      <p>
+        <strong>What it does:</strong> Runs the full pick and place 20 times for each test condition, without the viewer. It logs the true values from MuJoCo next to the robot&rsquo;s estimates every step.
+      </p>
+      <p>
+        <strong>Conditions:</strong> We used 5 conditions to see how robust and reliable it is when things get worse:
+      </p>
+      <ul>
+        <li><strong>Nominal:</strong> The same as the regular simulation.</li>
+        <li><strong>3x Camera noise:</strong> The pixel and depth noise are tripled, but the Kalman filter&rsquo;s R is left alone, so it doesn&rsquo;t know the camera has changed or got worse.</li>
+        <li><strong>A 5, 7, and 10N push:</strong> A sideways shove on the wrist for 0.1 seconds during visual servoing.</li>
+      </ul>
+      <p>
+        <strong>Fair comparison:</strong> Every condition uses the same random can spawns (trial 1 has the same can spawn location for every condition).
+      </p>
+      <p>
+        <strong>Success:</strong> The gripper ends within 10mm of the can centre and the can is placed on the blue plate. Grasp offset is used because the simulated gripper attaches the can wherever it is, so &ldquo;did it pick up&rdquo; alone would always say yes.
+      </p>
+      <p>
+        <strong>Ground Truth:</strong> Only used to score the results and draw graphs.
+      </p>
+      <p>
+        <strong>Content Used:</strong> NEES consistency check from week 7 (D.3), the LQR weight trade-off from week 6 (A.5), and the servo gain sweep from Week 9 (C4).
       </p>
 
-      <div class="columns is-centered">
-        <div class="column content">
-          <h3 class="title is-4 cw">Can position estimation</h3>
-          <p class="cw">Estimate error against the &plusmn;2&sigma; uncertainty band, and NEES per trial against the 3 and 7.815 reference lines.</p>
-          <img src="./static/images/results/nees.png" class="teaser-image" alt="Can position estimate and NEES consistency."/>
-        </div>
-        <div class="column content">
-          <h3 class="title is-4 cw">Joint control</h3>
-          <p class="cw">Tracking error and torque as a percentage of motor limits, and the effect of the LQR weight Q on effort against accuracy.</p>
-          <img src="./static/images/results/joint_control.png" class="teaser-image" alt="Joint tracking error and torque usage."/>
-        </div>
-      </div>
-
+      <h3 class="title is-4">Overall Results</h3>
       <table class="table is-fullwidth">
-        <thead><tr><th class="cw">Metric</th><th class="cw">Result over [N] randomised trials</th></tr></thead>
+        <thead>
+          <tr><th>Condition</th><th>Trials</th><th>Success</th><th>Grasp offset (mm)</th><th>Place error (mm)</th><th>Can KF error at look pose (mm)</th><th>Fails</th></tr>
+        </thead>
         <tbody>
-          <tr><td class="cw">Can position error after filtering (mm)</td><td class="cw">[ ]</td></tr>
-          <tr><td class="cw">Mean NEES (target about 3)</td><td class="cw">[ ]</td></tr>
-          <tr><td class="cw">PBVS convergence (photos to reach 2 mm)</td><td class="cw">[ ]</td></tr>
-          <tr><td class="cw">Grasp success rate</td><td class="cw">[ ]</td></tr>
-          <tr><td class="cw">Place error (mm)</td><td class="cw">[ ]</td></tr>
+          <tr><td>Nominal</td><td>20</td><td>20</td><td>5.5</td><td>5.7</td><td>3.6</td><td>0</td></tr>
+          <tr><td>Push 5N</td><td>20</td><td>20</td><td>4.5</td><td>4.6</td><td>3.6</td><td>0</td></tr>
+          <tr><td>Push 7N</td><td>20</td><td>16</td><td>4.5</td><td>4.5</td><td>3.6</td><td>4</td></tr>
+          <tr><td>Push 10N</td><td>20</td><td>5</td><td>6.5</td><td>6.5</td><td>3.6</td><td>15</td></tr>
         </tbody>
       </table>
-
-      <h3 class="title is-4 cw">Results discussion and reflection</h3>
-      <p class="cw">
-        [Explain why the results look as they do: what drives the can estimate error, where the observer lags, how tracking error
-        trades against torque, and which failures you saw and traced.]
+      <p>
+        The grasp and place errors averages were only taken with successful trials. The 7N and 10N push failed due to the can leaving the frame of reference.
       </p>
-      <p class="cw"><strong>Limitations.</strong></p>
+
+      <h3 class="title is-4">What We Found</h3>
+
+      <p><strong>The can filter was accurate but over-confident (Graphs 1, 2):</strong></p>
       <ul>
-        <li class="cw">Joint coupling is ignored and inertia is held constant at one pose.</li>
-        <li class="cw">Noise values are injected by us, so robustness is to our noise models rather than real sensor behaviour.</li>
-        <li class="cw">[Check the current code: if the visual-servo kinematics (camera pose, gripper pose, Jacobian) still read true poses from the simulator rather than values computed from the estimates, state that here. Delete this bullet if it no longer applies.]</li>
-        <li class="cw">If the can leaves the image, no measurement is available and the code does not yet skip the update. [Confirm against current code.]</li>
-        <li class="cw">Simulation only. [Update if you completed any hardware work.]</li>
+        <li>After 20 look-pose photos the can estimate was 3.6mm off on average, but the filter claimed 0.65mm.</li>
+        <li>It was never inside its own 2 standard deviations in any of the 20 trials. Mean NEES was 126 against an honest 3, and no trial was under the 95% line of 7.8.</li>
+        <li>Graph 1 shows why: the y readings sit about 2mm off and z about 2-3mm off on every photo. Averaging 20 photos removes random noise, but not a steady offset. The filter shrinks its uncertainty around the wrong answer.</li>
+        <li>This is the evidence that led us to add the 3 mm bias term to R.</li>
+      </ul>
+      <p><img src="./figures/graph_1_kalman_estimate_vs_truth.png" class="teaser-image" alt="Graph 1: Kalman estimate, 2 sigma band and single readings against the true position"/></p>
+      <p><img src="./figures/graph_2_kalman_consistency.png" class="teaser-image" alt="Graph 2: NEES for every nominal trial"/></p>
+
+      <p><strong>The visual servoing made the estimate worse, not better (Graph 10):</strong></p>
+      <ul>
+        <li>In nominal trials the can error grew from 3.6mm at the look pose to 6mm by the end of the servoing, and NEES rose to about 400.</li>
+        <li>The close up photos aren&rsquo;t more accurate than the model says, because the depth readings are biased. Graph 9 shows depth reads 2-4mm long at almost every distance, sitting at the edge of or outside the &plusmn;2 standard deviation noise model.</li>
+      </ul>
+      <p><img src="./figures/graph_9_sensing.png" class="teaser-image" alt="Graph 9: reprojection error and depth error against the noise model"/></p>
+
+      <p><strong>What if R was 10 times smaller? (Graph 3):</strong></p>
+      <ul>
+        <li>Replaying the same photos with R&times;0.1 barely changed the accuracy, but NEES jumped from about 126 to about 460.</li>
+        <li>The filter becomes far more sure of itself without being more accurate. NEES only reaches an honest 3 when R is scaled up about 100x, which says the error is bias not noise.</li>
+      </ul>
+      <p><img src="./figures/graph_3_rn_tradeoff.png" class="teaser-image" alt="Graph 3: accuracy and consistency as R is scaled"/></p>
+
+      <p><strong>Joint observers estimate speed they never measure (Graph 4):</strong></p>
+      <ul>
+        <li>The encoders only read angle. The observers still estimated angle to within 4.1 mrad RMS and speed to within 0.12 rad/s RMS over the whole run.</li>
+      </ul>
+      <p><img src="./figures/graph_4_observer_vs_truth.png" class="teaser-image" alt="Graph 4: shoulder speed estimate from the observer against the true speed"/></p>
+
+      <p><strong>LQR effort vs tracking error (Graph 7):</strong></p>
+      <ul>
+        <li>Raising the Q angle weight from 10 to 100 cut the final joint error from 1.4 degrees to 0.05 and made the move settle in 1.8s.</li>
+        <li>The cost was peak torque rising from 72% to 228% of the motor limit.</li>
+        <li>We kept Q = 100 because above that the error stops improving, while torque keeps climbing. Q = 30 settles slower (2.4s) and ends 0.48 degrees off.</li>
+        <li>The motors are saturated for 2.2% of the look move at Q = 100, all at the very start.</li>
+      </ul>
+      <p><img src="./figures/graph_7_lqr_weight_tradeoff.png" class="teaser-image" alt="Graph 7: LQR weight trade-off between effort and tracking error"/></p>
+
+      <p><strong>Observer speed vs noise (Graph 5):</strong></p>
+      <ul>
+        <li>Telling the observer the encoder is 10x quieter makes its poles faster, raising the wrist pole ratio from 1.6 to 3.2 and cutting speed error from 0.31 to 0.2rad/s.</li>
+        <li>Telling the observer the encoder is 10x noisier drops the wrist ratio to 0.8 and the final joint error grows from 0.05 to 0.52 degrees.</li>
+      </ul>
+      <p><img src="./figures/graph_5_observer_speed_tradeoff.png" class="teaser-image" alt="Graph 5: observer speed against noise trade-off"/></p>
+
+      <p><strong>Pushes (Graphs 10 and 11):</strong></p>
+      <ul>
+        <li>5N was recovered every time, 7N was recovered in 16/20 trials and 10N was recovered 5/20 trials.</li>
+        <li>Every failure was due to the can leaving the camera picture. With no red pixels there&rsquo;s nothing to servo towards.</li>
+        <li>Graph 10 shows the red-pixel count dropping from about 7900 to about 500 after a 7N push, which shows how close this got. This puts the limit at somewhere in between 5-7N.</li>
+        <li>The trials that recovered ended with a slightly smaller grasp offset (4.5 compared to 5.5mm), as the extra correction photos after the push gave the filter more readings.</li>
+      </ul>
+      <p><img src="./figures/graph_10_pbvs_convergence.png" class="teaser-image" alt="Graph 10: visual servoing photo by photo for each condition"/></p>
+      <p><img src="./figures/graph_11_robustness.png" class="teaser-image" alt="Graph 11: grasp and place error for every trial in each condition"/></p>
+
+      <p><strong>Can position matters:</strong></p>
+      <ul>
+        <li>The 3 worst can estimates were all cans at the y = -0.2m edge of the spawn area.</li>
+        <li>The camera sees those cans at an angle, so the red pixel centre isn&rsquo;t the true centre of the can top, as it can see the side of it as well.</li>
+      </ul>
+
+      <h3 class="title is-4">Limitations</h3>
+      <p><strong>The camera pose comes from MuJoCo&rsquo;s true pose:</strong></p>
+      <ul>
+        <li>The can readings use the true camera pose from MuJoCo, not the pose worked out from the estimated joints.</li>
+        <li>Working it out from the observers&rsquo; joints instead puts the camera 2.8mm and 0.56 degrees away from where it really is, which would move a can reading by about 5.4mm.</li>
+      </ul>
+      <p>
+        <strong>Torque saturation:</strong> At Q = 100 the wrist motors ask for up to 2.3x their limit at the start of the look move. MuJoCo clips the torque, but the observer is given the unclipped value.
+      </p>
+      <p>
+        <strong>Wrist observers are slow:</strong> The pole ratio is 5.5 and 5.1 for the base and the shoulder, but 1.6-1.7 for the 3 wrists, below the 2-5 rule of thumb. The observer is tuned once for all joints, but the light wrists have a much faster LQR.
+      </p>
+      <p>
+        <strong>Simplified gripper:</strong> The can is attached to the gripper, not gripped, so slip and grip force aren&rsquo;t tested.
+      </p>
+
+      <h3 class="title is-4">What we&rsquo;d change</h3>
+      <ul>
+        <li>Model the centroid and depth bias directly instead of absorbing it into R.</li>
+        <li>Tune a separate observer for the wrists.</li>
+        <li>Feed the observer the clipped torque.</li>
       </ul>
 
 
@@ -514,9 +596,9 @@
         <thead><tr><th>Individual</th><th>Contribution</th></tr></thead>
         <tbody>
           <tr><td>Jack</td><td>Estimation Content, Modelling Content, and small parts of other sections</td></tr>
-          <tr><td>Will</td><td>Part D - Control, Setting up Website</td></tr>
-          <tr><td>Banjo</td><td>Results content <mark class="cw">[add specifics]</mark></td></tr>
-          <tr><td>James</td><td>Sensing content <mark class="cw">[add specifics]</mark></td></tr>
+          <tr><td>Will</td><td>Control content, setting up website</td></tr>
+          <tr><td>Banjo</td><td>Results content, creating graphs and interpreting</td></tr>
+          <tr><td>James</td><td>Sensing content, Editing the video</td></tr>
         </tbody>
       </table>
 
