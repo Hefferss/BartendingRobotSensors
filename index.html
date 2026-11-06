@@ -90,13 +90,12 @@
 <section class="hero teaser">
   <div class="container is-max-desktop">
     <div class="hero-body">
+      <img src="./static/images/simulation_scene.png"
+           class="teaser-image"
+           alt="MuJoCo simulation: UR3 arm on a linear rail, with the red can on the green pick plate and the blue place plate."/>
       <img src="./static/images/pipeline.svg"
            class="teaser-image"
            alt="System pipeline: sensors feed estimators, estimators feed controllers, controllers drive the UR3 on a rail."/>
-      <h2 class="subtitle has-text-centered">
-        Our system uses a UR3 robot arm on a linear rail, using Mujoco to simulate it finding a randomly placed can on a mounted RGB-D camera, picking it up and placing it on a target plate. The camera reading from the RGB-D camera is turned into a 3D position, then cleaned up using Kalman filters, and used to give information to the rail and arm with LQR controllers and position-based visual servoing. The controllers use estimation states and never ground truth, which is only added for testing purposes.
-        This project page is split into four main parts (Sensing, Estimation, Control and Results), with each team member leading the content for one part. Each part explains how that component works in our system, the design choices behind them, and how we iterated on and tested them.
-      </h2>
     </div>
   </div>
 </section>
@@ -165,14 +164,10 @@
       <div class="column is-full-width">
         <h2 id="video" class="title is-3">Demo Video</h2>
         <div class="publication-video">
-          <!-- Replace VIDEO_ID with your YouTube video ID (upload as Unlisted). -->
-          <iframe src="https://www.youtube.com/embed/VIDEO_ID?rel=0&amp;showinfo=0"
+          <iframe src="https://www.youtube.com/embed/D6R0K0a1LPI?rel=0"
+                  title="Demo video"
                   frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
-        <p class="is-size-6 cw">
-          [Replace VIDEO_ID in the embed above.] The video shows the completed task, a varied or disturbed trial,
-          and the estimate with its uncertainty alongside the true state.
-        </p>
       </div>
     </div>
   </div>
@@ -236,13 +231,14 @@
         <li><strong>Content used:</strong> Week 5 tutorial (ctrb and obsv).</li>
       </ul>
 
+
       <!-- ===== SENSING (James) ===== -->
       <h2 class="title is-3" id="sensing">Sensing - James</h2>
 
       <h3 class="title is-4">Camera calibration</h3>
       <p>
         The pinhole camera intrinsics K were found by rendering 14 camera views of a checkboard approximatly 0.45-0.65 m away at these varied distances as well as varying tilt +/- 30 degrees alongside distance
-        inside the MuJoCo simulation then calibrated with the Machine Vision Toolbox (<code>CameraCalibration.py</code>). Through this process K is found in each of the 14 images using (<code>Central.Camera.images2C</code>). The focal length is just under 500 px.
+        inside the MuJoCo simulation then calibrated with the Machine Vision Toolbox (CameraCalibration.py). Through this process K is found in each of the 14 images using (Central.Camera.images2C). The focal length is just under 500 px.
         Mean reprojection error: 0.18 px. 
       </p>
 
@@ -300,15 +296,8 @@
         too sure and stop listening to new photos. A small Q keeps it updating (Week 7: when in doubt, make Q bigger).
       </p>
       <p>
-        <strong>Location in code:</strong> <mark class="cw">[add file and function names, e.g. can_kf_update() in MainRunFileMujoco.py]</mark>
-      </p>
-      <p>
         <strong>Content Used:</strong> This part was based off of the Week 7 Kalman filter tutorial (kf_step), the Week 4 tutorial for turning
         pixel + depth into 3D with K&#8315;&sup1;, and the Week 3 calibration for K.
-      </p>
-      <p class="cw">
-        <strong>Consistency check (NEES):</strong> for a 3-state filter the mean NEES should be near 3, and about 95% of trials should fall
-        below 7.815. Values above this mean the filter is over-confident (its covariance is too small). [Add your NEES result here.]
       </p>
 
       <h3 class="title is-4">Rail Kalman Filter</h3>
@@ -330,14 +319,6 @@
       <p>
         <strong>Content Used:</strong> This part used the week 7 Kalman filter stuff (based off the cart model which was helpful since its
         actually kind of similar in terms of movement in terms of kf_step) and the Week 6 LQR content (the part used in the rail controller).
-      </p>
-
-      <h3 class="title is-4 cw">Joint observer</h3>
-      <p class="cw">
-        Each joint runs a copy of its model and corrects it with the encoder: x&#770;&#775; = A x&#770; + B u + L (y &minus; C x&#770;).
-        The gain L is the steady-state Kalman gain from <code>lqe</code> with process noise Q = diag(1e-3, 1) and measurement noise R = 1e-5.
-        Larger Q/R makes the estimate faster and noisier. Smaller Q/R makes it smoother and slower.
-        [State how you checked or tuned these values, e.g. the sweep in the results.]
       </p>
 
       <h3 class="title is-4">What we found</h3>
@@ -484,29 +465,29 @@
       <ol>
         <li>
           <strong>Download:</strong>
-<pre><code>git clone https://github.com/Hefferss/BartendingRobotSensors
-cd BartendingRobotSensors</code></pre>
+<p>git clone https://github.com/Hefferss/BartendingRobotSensors<br>
+          cd BartendingRobotSensors</p>
           <span>If you don&rsquo;t use Git, click Code, then Download ZIP on the GitHub page, unzip it, and open a terminal in that folder. Run every later command from inside the project folder.</span>
         </li>
         <li>
           <strong>Set up Python (if you haven&rsquo;t already):</strong>
-<pre><code>python -m venv .venv
-.venv\Scripts\activate</code></pre>
-          <span>The first line creates a private environment for the project&rsquo;s packages and the second switches it on. You should see (.venv) at the start of the terminal line. If PowerShell refuses to run the activate script, run <code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned</code> and then activate again.</span>
+<p>python -m venv .venv<br>
+          .venv\Scripts\activate</p>
+          <span>The first line creates a private environment for the project&rsquo;s packages and the second switches it on. You should see (.venv) at the start of the terminal line. If PowerShell refuses to run the activate script, run Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned and then activate again.</span>
         </li>
         <li>
           <strong>Install the packages:</strong>
-<pre><code>pip install mujoco numpy control matplotlib</code></pre>
-          <span>Do this with the environment active. If a later run stops with <code>ModuleNotFoundError: No module named 'x'</code>, install that package with <code>pip install x</code>.</span>
+<p>pip install mujoco numpy control matplotlib</p>
+          <span>Do this with the environment active. If a later run stops with ModuleNotFoundError: No module named 'x', install that package with pip install x.</span>
         </li>
         <li>
-          <strong>Run the demo</strong> by playing <code>MainRunFileMujoco.py</code>:
-<pre><code>python MainRunFileMujoco.py</code></pre>
+          <strong>Run the demo</strong> by playing MainRunFileMujoco.py:
+<p>python MainRunFileMujoco.py</p>
           <span>You can also open the file in VS Code and press the play button, as long as the selected Python interpreter is the .venv one.</span>
         </li>
         <li>
-          <strong>Simulate a disturbance:</strong> use <code>push_on = True</code> in <code>MainRunFileMujoco.py</code> to simulate a 5N push.
-          <span>Open the file, set <code>push_on</code> to <code>True</code>, save, and run it again. Set it back to <code>False</code> for a normal run.</span>
+          <strong>Simulate a disturbance:</strong> use push_on = True in MainRunFileMujoco.py to simulate a 5N push.
+          <span>Open the file, set push_on to True, save, and run it again. Set it back to False for a normal run.</span>
         </li>
       </ol>
 
@@ -521,8 +502,8 @@ cd BartendingRobotSensors</code></pre>
 
       <h3 class="title is-4">Optional scripts</h3>
       <p>
-        <code>CameraCalibration.py</code> needs two more packages (<code>pip install opencv-python machinevision-toolbox-python</code>) and reproduces the camera calibration.
-        <code>graphs.py</code> regenerates the result figures from the saved files in the results folder.
+        CameraCalibration.py needs two more packages (pip install opencv-python machinevision-toolbox-python) and reproduces the camera calibration.
+        graphs.py regenerates the result figures from the saved files in the results folder.
       </p>
       <p>[Add the Python version you used and any other setup notes, such as whether RailEstimation.py needs to sit in the same folder as the other scripts.]</p>
 
